@@ -17,4 +17,5 @@ public class BattleTowerQueries {
 
     public static final String GET_TOP_ATTEMPTS = "SELECT uuid, name, start, duration, floor_reached FROM `envy_battle_tower_players` ORDER BY floor_reached DESC LIMIT 10;";
 
+    public static final String UPDATE_USERNAME = "UPDATE `envy_battle_tower_players` SET `name` = ? WHERE `uuid` = ?;";
 }
