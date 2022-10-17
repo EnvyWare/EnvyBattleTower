@@ -8,6 +8,7 @@ import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.battle.tower.config.BattleTowerConfig;
+import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -26,6 +27,7 @@ public class EnvyBattleTower {
     private ForgeCommandFactory commandFactory = new ForgeCommandFactory();
 
     private BattleTowerConfig config;
+    private BattleTowerGraphics graphics;
     private Database database;
 
     public EnvyBattleTower() {
@@ -49,6 +51,7 @@ public class EnvyBattleTower {
     public void reloadConfig() {
         try {
             this.config = YamlConfigFactory.getInstance(BattleTowerConfig.class);
+            this.graphics = YamlConfigFactory.getInstance(BattleTowerGraphics.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,6 +59,10 @@ public class EnvyBattleTower {
 
     public BattleTowerConfig getConfig() {
         return this.config;
+    }
+
+    public BattleTowerGraphics getGraphics() {
+        return this.graphics;
     }
 
     public Database getDatabase() {
