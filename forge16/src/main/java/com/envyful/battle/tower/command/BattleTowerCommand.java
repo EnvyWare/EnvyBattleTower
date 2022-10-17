@@ -2,6 +2,7 @@ package com.envyful.battle.tower.command;
 
 import com.envyful.api.command.annotate.Command;
 import com.envyful.api.command.annotate.Permissible;
+import com.envyful.api.command.annotate.SubCommands;
 import com.envyful.api.command.annotate.executor.CommandProcessor;
 import com.envyful.api.command.annotate.executor.Sender;
 import com.envyful.battle.tower.EnvyBattleTower;
@@ -18,6 +19,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
         }
 )
 @Permissible("com.envyful.battle.tower.command")
+@SubCommands(ReloadCommand.class)
 public class BattleTowerCommand {
 
     @CommandProcessor
