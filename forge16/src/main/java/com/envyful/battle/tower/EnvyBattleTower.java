@@ -3,14 +3,17 @@ package com.envyful.battle.tower;
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.database.impl.SimpleHikariDatabase;
+import com.envyful.api.database.leaderboard.Order;
 import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
+import com.envyful.api.leaderboard.Leaderboard;
 import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
+import com.envyful.battle.tower.player.BattleTowerEntry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,6 +21,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Mod("envybattletower")
 public class EnvyBattleTower {
@@ -30,6 +34,7 @@ public class EnvyBattleTower {
     private BattleTowerConfig config;
     private BattleTowerGraphics graphics;
     private Database database;
+    private Leaderboard<BattleTowerEntry> leaderboard;
 
     public EnvyBattleTower() {
         instance = this;
@@ -42,6 +47,14 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
         this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
+        this.leaderboard = Leaderboard.builder(BattleTowerEntry.class)
+                .database(this.database)
+                .cacheDuration(TimeUnit.MINUTES.toMillis(10))
+                .formatter(BattleTowerEntry::fromQuery)
+                .order(Order.DESCENDING)
+                .table("envy_battle_tower_players")
+                .pageSize(10)
+                .build();
     }
 
     @SubscribeEvent
@@ -69,6 +82,10 @@ public class EnvyBattleTower {
 
     public Database getDatabase() {
         return this.database;
+    }
+
+    public Leaderboard<BattleTowerEntry> getLeaderboard() {
+        return this.leaderboard;
     }
 
     public ForgePlayerManager getPlayerManager() {
