@@ -1,0 +1,27 @@
+package com.envyful.battle.tower.command;
+
+import com.envyful.api.command.annotate.Command;
+import com.envyful.api.command.annotate.Permissible;
+import com.envyful.api.command.annotate.executor.CommandProcessor;
+import com.envyful.api.command.annotate.executor.Sender;
+import com.envyful.battle.tower.EnvyBattleTower;
+import com.envyful.battle.tower.gui.BattleTowerUI;
+import net.minecraft.entity.player.ServerPlayerEntity;
+
+@Command(
+        value = "envybattletower",
+        description = "Battle tower command",
+        aliases = {
+                "battletower",
+                "ebattletower",
+                "bt"
+        }
+)
+@Permissible("com.envyful.battle.tower.command")
+public class BattleTowerCommand {
+
+    @CommandProcessor
+    public void onCommand(@Sender ServerPlayerEntity sender) {
+        BattleTowerUI.open(EnvyBattleTower.getInstance().getPlayerManager().getPlayer(sender));
+    }
+}

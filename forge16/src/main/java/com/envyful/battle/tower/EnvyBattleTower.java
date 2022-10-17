@@ -7,6 +7,7 @@ import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
+import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
@@ -46,6 +47,7 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onCommandRegister(RegisterCommandsEvent event) {
         this.playerManager.registerAttribute(this, BattleTowerAttribute.class);
+        this.commandFactory.registerCommand(event.getDispatcher(), new BattleTowerCommand());
     }
 
     public void reloadConfig() {
