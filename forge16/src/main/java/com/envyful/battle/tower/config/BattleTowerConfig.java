@@ -11,6 +11,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @ConfigSerializable
 @ConfigPath("config/EnvyBattleTower/config.yml")
@@ -31,6 +32,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
     );
 
     private int maxFloor = -1;
+    private long cooldownSeconds = TimeUnit.DAYS.toSeconds(1);
 
     public BattleTowerConfig() {
         super();
@@ -54,6 +56,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public List<TeamPossibilities> getTeamPossibilities() {
         return Lists.newArrayList(this.teamOptions.values());
+    }
+
+    public long getCooldownSeconds() {
+        return this.cooldownSeconds;
     }
 
     @ConfigSerializable

@@ -19,6 +19,10 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
         super();
     }
 
+    public MainUI getMainUI() {
+        return this.mainUI;
+    }
+
     @ConfigSerializable
     public static class MainUI {
 

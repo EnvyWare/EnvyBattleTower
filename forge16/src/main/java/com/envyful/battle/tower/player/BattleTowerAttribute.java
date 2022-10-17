@@ -17,6 +17,8 @@ import java.util.UUID;
 public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower> {
 
     private List<AttemptDetails> attempts = Lists.newArrayList();
+    private AttemptDetails lastAttempt = null;
+    private AttemptDetails bestAttempt = null;
 
     private long attemptStart;
     private int currentFloor;
@@ -30,36 +32,43 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     }
 
     public AttemptDetails getLastAttempt() {
-        if (this.attempts.isEmpty()) {
-            return null;
-        }
-
-        AttemptDetails lastAttempt = null;
-
-        for (AttemptDetails attempt : this.attempts) {
-            if (lastAttempt == null) {
-                lastAttempt = attempt;
-            } else if (lastAttempt.getAttemptStart() < attempt.getAttemptStart()) {
-                lastAttempt = attempt;
+        if (this.lastAttempt == null) {
+            if (this.attempts.isEmpty()) {
+                return null;
             }
+
+            AttemptDetails lastAttempt = null;
+
+            for (AttemptDetails attempt : this.attempts) {
+                if (lastAttempt == null) {
+                    lastAttempt = attempt;
+                } else if (lastAttempt.getAttemptStart() < attempt.getAttemptStart()) {
+                    lastAttempt = attempt;
+                }
+            }
+
+            this.lastAttempt = lastAttempt;
         }
 
         return lastAttempt;
     }
 
     public AttemptDetails getBestAttempt() {
-        if (this.attempts.isEmpty()) {
-            return null;
-        }
-
-        AttemptDetails bestAttempt = null;
-
-        for (AttemptDetails attempt : this.attempts) {
-            if (bestAttempt == null) {
-                bestAttempt = attempt;
-            } else if (bestAttempt.getFloorReached() < attempt.getFloorReached()) {
-                bestAttempt = attempt;
+        if (this.bestAttempt == null) {
+            if (this.attempts.isEmpty()) {
+                return null;
             }
+
+            AttemptDetails bestAttempt = null;
+
+            for (AttemptDetails attempt : this.attempts) {
+                if (bestAttempt == null) {
+                    bestAttempt = attempt;
+                } else if (bestAttempt.getFloorReached() < attempt.getFloorReached()) {
+                    bestAttempt = attempt;
+                }
+            }
+            this.bestAttempt = bestAttempt;
         }
 
         return bestAttempt;
@@ -85,7 +94,14 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
             e.printStackTrace();
         }
 
-        this.attempts.add(new AttemptDetails(this.attemptStart, duration, this.currentFloor));
+        AttemptDetails attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
+        this.attempts.add(attempt);
+        this.lastAttempt = attempt;
+
+
+        if (this.bestAttempt == null || this.bestAttempt.getFloorReached() < attempt.getFloorReached()) {
+            this.bestAttempt = attempt;
+        }
 
         this.attemptStart = -1;
         this.currentFloor = 0;

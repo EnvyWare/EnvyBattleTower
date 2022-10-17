@@ -68,4 +68,12 @@ public class EnvyBattleTower {
     public Database getDatabase() {
         return this.database;
     }
+
+    public ForgePlayerManager getPlayerManager() {
+        return this.playerManager;
+    }
+
+    public static EnvyBattleTower getInstance() {
+        return instance;
+    }
 }
