@@ -6,7 +6,9 @@ import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.battle.tower.config.BattleTowerConfig;
+import com.envyful.battle.tower.player.BattleTowerAttribute;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
@@ -34,6 +36,11 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
 
+    }
+
+    @SubscribeEvent
+    public void onCommandRegister(RegisterCommandsEvent event) {
+        this.playerManager.registerAttribute(this, BattleTowerAttribute.class);
     }
 
     public void reloadConfig() {
