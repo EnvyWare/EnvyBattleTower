@@ -3,6 +3,7 @@ package com.envyful.battle.tower.config;
 import com.envyful.api.config.ConfigLocation;
 import com.envyful.api.config.data.ConfigPath;
 import com.envyful.api.config.type.ConfigRandomWeightedSet;
+import com.envyful.api.config.type.SQLDatabaseDetails;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -14,6 +15,10 @@ import java.util.Map;
 @ConfigSerializable
 @ConfigPath("config/EnvyBattleTower/config.yml")
 public class BattleTowerConfig extends AbstractYamlConfig {
+
+    private SQLDatabaseDetails databaseDetails = new SQLDatabaseDetails(
+            "EnvyBattleTower", "0.0.0.0", 3306, "admin", "password", "database"
+    );
 
     private Map<String, PossiblePosition> positions = ImmutableMap.of(
             "example", new PossiblePosition(
@@ -29,6 +34,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public BattleTowerConfig() {
         super();
+    }
+
+    public SQLDatabaseDetails getDatabaseDetails() {
+        return this.databaseDetails;
     }
 
     public List<PossiblePosition> getPositions() {

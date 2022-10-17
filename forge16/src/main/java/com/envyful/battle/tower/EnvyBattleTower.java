@@ -2,6 +2,7 @@ package com.envyful.battle.tower;
 
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
+import com.envyful.api.database.impl.SimpleHikariDatabase;
 import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgePlayerManager;
@@ -37,7 +38,7 @@ public class EnvyBattleTower {
 
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
-
+        this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
     }
 
     @SubscribeEvent
