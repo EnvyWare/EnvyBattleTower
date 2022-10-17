@@ -18,12 +18,77 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
     private List<AttemptDetails> attempts = Lists.newArrayList();
 
+    private long attemptStart;
+    private int currentFloor;
+
     public BattleTowerAttribute(EnvyBattleTower manager, EnvyPlayer<?> parent) {
         super(manager, (ForgeEnvyPlayer) parent);
     }
 
     public BattleTowerAttribute(UUID uuid) {
         super(uuid);
+    }
+
+    public AttemptDetails getLastAttempt() {
+        if (this.attempts.isEmpty()) {
+            return null;
+        }
+
+        AttemptDetails lastAttempt = null;
+
+        for (AttemptDetails attempt : this.attempts) {
+            if (lastAttempt == null) {
+                lastAttempt = attempt;
+            } else if (lastAttempt.getAttemptStart() < attempt.getAttemptStart()) {
+                lastAttempt = attempt;
+            }
+        }
+
+        return lastAttempt;
+    }
+
+    public AttemptDetails getBestAttempt() {
+        if (this.attempts.isEmpty()) {
+            return null;
+        }
+
+        AttemptDetails bestAttempt = null;
+
+        for (AttemptDetails attempt : this.attempts) {
+            if (bestAttempt == null) {
+                bestAttempt = attempt;
+            } else if (bestAttempt.getFloorReached() < attempt.getFloorReached()) {
+                bestAttempt = attempt;
+            }
+        }
+
+        return bestAttempt;
+    }
+
+    public void startAttempt() {
+        this.attemptStart = System.currentTimeMillis();
+        this.currentFloor = 1;
+    }
+
+    public void finishAttempt() {
+        long duration = System.currentTimeMillis() - this.attemptStart;
+
+        try (Connection connection = this.manager.getDatabase().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.ADD_USER_ATTEMPT)) {
+            preparedStatement.setString(1, this.parent.getUuid().toString());
+            preparedStatement.setString(2, this.parent.getName());
+            preparedStatement.setLong(3, this.attemptStart);
+            preparedStatement.setLong(4, duration);
+            preparedStatement.setInt(5, this.currentFloor);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        this.attempts.add(new AttemptDetails(this.attemptStart, duration, this.currentFloor));
+
+        this.attemptStart = -1;
+        this.currentFloor = 0;
     }
 
     @Override
