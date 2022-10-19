@@ -2,10 +2,24 @@ package com.envyful.battle.tower.player;
 
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
+import com.envyful.api.forge.world.UtilWorld;
+import com.envyful.api.math.UtilRandom;
 import com.envyful.api.player.EnvyPlayer;
+import com.envyful.api.reforged.battle.BattleBuilder;
+import com.envyful.api.reforged.battle.BattleParticipantBuilder;
+import com.envyful.api.reforged.battle.ConfigBattleRule;
 import com.envyful.battle.tower.EnvyBattleTower;
+import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.google.common.collect.Lists;
+import com.pixelmonmod.pixelmon.api.battles.BattleResults;
+import com.pixelmonmod.pixelmon.api.battles.BattleType;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
+import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
+import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
+import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
+import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -77,6 +91,77 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     public void startAttempt() {
         this.attemptStart = System.currentTimeMillis();
         this.currentFloor = 1;
+        this.beginBattle();
+    }
+
+    public void beginBattle() {
+        BattleTowerConfig.PossiblePosition position = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
+        NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
+        List<Pokemon> randomLeaderTeam = getRandomLeaderTeam();
+
+        trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
+        trainer.yRot = (float) position.getTrainerPosition().getPitch();
+        trainer.xRot = (float) position.getTrainerPosition().getYaw();
+
+        this.getParent().teleport(position.getPlayerPosition());
+
+        BattleBuilder.builder()
+                .startSync()
+                .startDelayTicks(5L)
+                .teamOne(BattleParticipantBuilder.builder().entity(this.getParent().getParent()).build())
+                .teamTwo(BattleParticipantBuilder.builder().entity(trainer).team(randomLeaderTeam.toArray(new Pokemon[0])).build())
+                .teamSelection()
+                .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
+                .rules(this.createRules())
+                .expEnabled(this.manager.getConfig().isAllowExpGain())
+                .allowSpectators(false)
+                .endHandler(battleEndEvent -> {
+                    trainer.remove();
+
+                    if (battleEndEvent.isAbnormal()) {
+                        this.finishAttempt();
+                        return;
+                    }
+
+                    BattleResults battleResults = battleEndEvent.getResult(this.getParent().getParent()).orElse(null);
+
+                    if (battleResults == null) {
+                        this.finishAttempt();
+                        return;
+                    }
+
+                    if (battleResults != BattleResults.VICTORY) {
+                        this.finishAttempt();
+                        return;
+                    }
+
+                    this.currentFloor++;
+                    this.beginBattle();
+                })
+                .start();
+    }
+
+    private List<Pokemon> getRandomLeaderTeam() {
+        List<Pokemon> team = Lists.newArrayList();
+        BattleTowerConfig.PokePaste random = this.manager.getConfig().getTeamPossibilities(this.currentFloor).getTeams().getWeightedSet().getRandom();
+
+        for (Pokemon pokemon : random.getTeam()) {
+            Pokemon copy = PokemonBuilder.copy(pokemon).build();
+            copy.heal();
+            team.add(copy);
+        }
+
+        return team;
+    }
+
+    private BattleRules createRules() {
+        BattleRules battleRules = new BattleRules().set(BattleRuleRegistry.BATTLE_TYPE, BattleType.SINGLE);
+
+        for (ConfigBattleRule rule : this.manager.getConfig().getRules()) {
+            battleRules.set(BattleRuleRegistry.getProperty(rule.getBattleRuleType()), rule.getBattleRuleValue());
+        }
+
+        return battleRules;
     }
 
     public void finishAttempt() {

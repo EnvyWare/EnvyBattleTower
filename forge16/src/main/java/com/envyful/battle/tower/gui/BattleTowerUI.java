@@ -36,8 +36,12 @@ public class BattleTowerUI {
             UtilConfigItem.builder().extendedConfigItem(player, pane, config.getCooldownButton());
         } else {
             UtilConfigItem.builder()
+                    .singleClick()
+                    .asyncClick(false)
                     .clickHandler((envyPlayer, clickType) -> {
-                    }) //TODO:
+                        player.getParent().closeContainer();
+                        attribute.startAttempt();
+                    })
                     .extendedConfigItem(player, pane, config.getStartAttemptButton());
         }
 

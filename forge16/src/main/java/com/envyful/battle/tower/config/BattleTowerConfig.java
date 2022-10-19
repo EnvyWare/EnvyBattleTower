@@ -5,8 +5,11 @@ import com.envyful.api.config.data.ConfigPath;
 import com.envyful.api.config.type.ConfigRandomWeightedSet;
 import com.envyful.api.config.type.SQLDatabaseDetails;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
+import com.envyful.api.reforged.battle.ConfigBattleRule;
+import com.envyful.api.reforged.pixelmon.PokePasteReader;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
@@ -33,6 +36,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     private int maxFloor = -1;
     private long cooldownSeconds = TimeUnit.DAYS.toSeconds(1);
+    private boolean allowExpGain = false;
+    private Map<String, ConfigBattleRule> battleRules = ImmutableMap.of(
+            "one", new ConfigBattleRule("example", "value")
+    );
 
     public BattleTowerConfig() {
         super();
@@ -60,6 +67,24 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public long getCooldownSeconds() {
         return this.cooldownSeconds;
+    }
+
+    public boolean isAllowExpGain() {
+        return this.allowExpGain;
+    }
+
+    public List<ConfigBattleRule> getRules() {
+        return Lists.newArrayList(this.battleRules.values());
+    }
+
+    public TeamPossibilities getTeamPossibilities(int floor) {
+        for (TeamPossibilities teamPossibility : this.getTeamPossibilities()) {
+            if (teamPossibility.getEndFloor() > floor && teamPossibility.getStartFloor() < floor) {
+                return teamPossibility;
+            }
+        }
+
+        return null;
     }
 
     @ConfigSerializable
@@ -90,8 +115,8 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
         private int startFloor = 1;
         private int endFloor = 1000;
-        private ConfigRandomWeightedSet<String> teams = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, "https://pokepast.es/")
+        private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/"))
         );
 
         public TeamPossibilities() {
@@ -105,8 +130,27 @@ public class BattleTowerConfig extends AbstractYamlConfig {
             return this.endFloor;
         }
 
-        public ConfigRandomWeightedSet<String> getTeams() {
+        public ConfigRandomWeightedSet<PokePaste> getTeams() {
             return this.teams;
+        }
+    }
+
+    @ConfigSerializable
+    public static class PokePaste {
+
+        private String paste;
+        private transient List<Pokemon> team;
+
+        public PokePaste(String paste) {
+            this.paste = paste;
+        }
+
+        public List<Pokemon> getTeam() {
+            if (this.team == null) {
+                this.team = PokePasteReader.from(this.paste).build();
+            }
+
+            return this.team;
         }
     }
 }
