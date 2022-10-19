@@ -29,7 +29,7 @@ public class BattleTowerUI {
         UtilConfigInterface.fillBackground(pane, config.getGuiSettings());
 
         UtilConfigItem.builder()
-                .clickHandler((envyPlayer, clickType) -> {}) //TODO:
+                .clickHandler((envyPlayer, clickType) -> LeaderboardUI.open(player, 1))
                 .extendedConfigItem(player, pane, config.getLeaderboardButton());
 
         if (onCooldown(lastAttempt)) {
