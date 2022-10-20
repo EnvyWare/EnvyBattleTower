@@ -2,12 +2,14 @@ package com.envyful.battle.tower.player;
 
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
+import com.envyful.api.forge.server.UtilForgeServer;
 import com.envyful.api.forge.world.UtilWorld;
 import com.envyful.api.math.UtilRandom;
 import com.envyful.api.player.EnvyPlayer;
 import com.envyful.api.reforged.battle.BattleBuilder;
 import com.envyful.api.reforged.battle.BattleParticipantBuilder;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
+import com.envyful.api.type.Pair;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerQueries;
@@ -97,7 +99,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     public void beginBattle() {
         BattleTowerConfig.PossiblePosition position = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
         NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
-        List<Pokemon> randomLeaderTeam = getRandomLeaderTeam();
+        Pair<BattleTowerConfig.PokePaste, List<Pokemon>> randomLeaderTeam = getRandomLeaderTeam();
 
         trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
         trainer.yRot = (float) position.getTrainerPosition().getPitch();
@@ -109,7 +111,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .startSync()
                 .startDelayTicks(5L)
                 .teamOne(BattleParticipantBuilder.builder().entity(this.getParent().getParent()).build())
-                .teamTwo(BattleParticipantBuilder.builder().entity(trainer).team(randomLeaderTeam.toArray(new Pokemon[0])).build())
+                .teamTwo(BattleParticipantBuilder.builder().entity(trainer).team(randomLeaderTeam.getY().toArray(new Pokemon[0])).build())
                 .teamSelection()
                 .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
                 .rules(this.createRules())
@@ -119,6 +121,13 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                     trainer.remove();
 
                     if (battleEndEvent.isAbnormal()) {
+                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                            UtilForgeServer.executeCommand(command
+                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            );
+                        }
+
                         this.finishAttempt();
                         return;
                     }
@@ -126,13 +135,52 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                     BattleResults battleResults = battleEndEvent.getResult(this.getParent().getParent()).orElse(null);
 
                     if (battleResults == null) {
+                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                            UtilForgeServer.executeCommand(command
+                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            );
+                        }
+
                         this.finishAttempt();
                         return;
                     }
 
                     if (battleResults != BattleResults.VICTORY) {
+                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                            UtilForgeServer.executeCommand(command
+                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            );
+                        }
+
                         this.finishAttempt();
                         return;
+                    }
+
+                    if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
+                        this.finishAttempt();
+                        for (String command : this.manager.getConfig().getAttemptFinishWinCommands()) {
+                            UtilForgeServer.executeCommand(command
+                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            );
+                        }
+
+                        for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
+                            UtilForgeServer.executeCommand(command
+                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            );
+                        }
+                        return;
+                    }
+
+                    for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
+                        UtilForgeServer.executeCommand(command
+                                .replace("%player%", this.getParent().getName())
+                                .replace("%floor%", String.valueOf(this.currentFloor))
+                        );
                     }
 
                     this.currentFloor++;
@@ -141,7 +189,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .start();
     }
 
-    private List<Pokemon> getRandomLeaderTeam() {
+    private Pair<BattleTowerConfig.PokePaste, List<Pokemon>> getRandomLeaderTeam() {
         List<Pokemon> team = Lists.newArrayList();
         BattleTowerConfig.PokePaste random = this.manager.getConfig().getTeamPossibilities(this.currentFloor).getTeams().getWeightedSet().getRandom();
 
@@ -151,7 +199,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
             team.add(copy);
         }
 
-        return team;
+        return Pair.of(random, team);
     }
 
     private BattleRules createRules() {

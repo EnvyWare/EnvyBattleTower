@@ -41,6 +41,9 @@ public class BattleTowerConfig extends AbstractYamlConfig {
             "one", new ConfigBattleRule("example", "value")
     );
 
+    private List<String> attemptFinishLossCommands = Lists.newArrayList("broadcast %player% %floor%");
+    private List<String> attemptFinishWinCommands = Lists.newArrayList("broadcast %player% %floor%");
+
     public BattleTowerConfig() {
         super();
     }
@@ -87,6 +90,14 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         return null;
     }
 
+    public List<String> getAttemptFinishLossCommands() {
+        return this.attemptFinishLossCommands;
+    }
+
+    public List<String> getAttemptFinishWinCommands() {
+        return this.attemptFinishWinCommands;
+    }
+
     @ConfigSerializable
     public static class PossiblePosition {
 
@@ -116,7 +127,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         private int startFloor = 1;
         private int endFloor = 1000;
         private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/"))
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/", Lists.newArrayList("ay %player%"), Lists.newArrayList("be %player%")))
         );
 
         public TeamPossibilities() {
@@ -140,9 +151,16 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
         private String paste;
         private transient List<Pokemon> team;
+        private List<String> playerWinCommands;
+        private List<String> playerLossCommands;
 
-        public PokePaste(String paste) {
+        public PokePaste(String paste, List<String> playerWinCommands, List<String> playerLossCommands) {
             this.paste = paste;
+            this.playerWinCommands = playerWinCommands;
+            this.playerLossCommands = playerLossCommands;
+        }
+
+        public PokePaste() {
         }
 
         public List<Pokemon> getTeam() {
@@ -151,6 +169,14 @@ public class BattleTowerConfig extends AbstractYamlConfig {
             }
 
             return this.team;
+        }
+
+        public List<String> getPlayerWinCommands() {
+            return this.playerWinCommands;
+        }
+
+        public List<String> getPlayerLossCommands() {
+            return this.playerLossCommands;
         }
     }
 }

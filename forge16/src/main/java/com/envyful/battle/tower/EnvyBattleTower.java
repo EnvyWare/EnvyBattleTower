@@ -1,5 +1,6 @@
 package com.envyful.battle.tower;
 
+import com.envyful.api.concurrency.UtilConcurrency;
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.database.impl.SimpleHikariDatabase;
@@ -12,6 +13,7 @@ import com.envyful.api.leaderboard.Leaderboard;
 import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
+import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import com.envyful.battle.tower.player.BattleTowerEntry;
 import net.minecraftforge.common.MinecraftForge;
@@ -21,6 +23,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 @Mod("envybattletower")
@@ -41,11 +46,11 @@ public class EnvyBattleTower {
         GuiFactory.setPlatformFactory(new ForgeGuiFactory());
 
         MinecraftForge.EVENT_BUS.register(this);
-        this.reloadConfig();
     }
 
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
+        this.reloadConfig();
         this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
         this.leaderboard = Leaderboard.builder(BattleTowerEntry.class)
                 .database(this.database)
@@ -55,6 +60,16 @@ public class EnvyBattleTower {
                 .table("envy_battle_tower_players")
                 .pageSize(10)
                 .build();
+        UtilConcurrency.runAsync(this::createTable);
+    }
+
+    private void createTable() {
+        try (Connection connection = this.getDatabase().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.CREATE_TABLE)) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent
