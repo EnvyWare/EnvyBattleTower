@@ -124,7 +124,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
     @ConfigSerializable
     public static class TeamPossibilities {
 
-        private int startFloor = 1;
+        private int startFloor = 0;
         private int endFloor = 1000;
         private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
                 new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/", Lists.newArrayList("ay %player%"), Lists.newArrayList("be %player%")))

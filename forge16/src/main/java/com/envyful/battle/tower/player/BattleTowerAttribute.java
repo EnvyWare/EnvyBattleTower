@@ -14,6 +14,7 @@ import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.google.common.collect.Lists;
+import com.pixelmonmod.pixelmon.api.battles.BattleAIMode;
 import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
@@ -104,6 +105,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
         trainer.yRot = (float) position.getTrainerPosition().getPitch();
         trainer.xRot = (float) position.getTrainerPosition().getYaw();
+        trainer.setBattleAIMode(BattleAIMode.ADVANCED);
 
         this.getParent().teleport(position.getPlayerPosition());
 
