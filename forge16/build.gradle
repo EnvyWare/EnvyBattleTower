@@ -47,11 +47,11 @@ dependencies {
     implementation 'pixelmon:Pixelmon-1.16.5-9.0.11-server:9.0.11'
 
     shadow group: 'org.spongepowered', name: 'configurate-yaml', version: '4.0.0'
-    shadow (group: 'com.github.EnvyWare.API', name: 'commons', version: '3.7.7')
-    shadow (group: 'com.github.EnvyWare.API', name: 'forge16', version: '3.7.7') {
+    shadow (group: 'com.github.EnvyWare.API', name: 'commons', version: '3.8.0')
+    shadow (group: 'com.github.EnvyWare.API', name: 'forge16', version: '3.8.0') {
         transitive = false
     }
-    shadow (group: 'com.github.EnvyWare.API', name: 'reforged16', version: '3.7.7') {
+    shadow (group: 'com.github.EnvyWare.API', name: 'reforged16', version: '3.7.8') {
         transitive = false
     }
 }
