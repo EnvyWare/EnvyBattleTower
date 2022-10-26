@@ -13,7 +13,7 @@ public class BattleTowerQueries {
 
     public static final String LOAD_USER_ATTEMPTS = "SELECT start, duration, floor_reached FROM `envy_battle_tower_players` WHERE uuid = ? LIMIT 30;";
 
-    public static final String ADD_USER_ATTEMPT = "INSERT INTO `envy_battle_tower_players`(uuid, name, start, duration, floor_reached) VALUES (?, ?, ?, ?);";
+    public static final String ADD_USER_ATTEMPT = "INSERT INTO `envy_battle_tower_players`(uuid, name, start, duration, floor_reached) VALUES (?, ?, ?, ?, ?);";
 
     public static final String GET_TOP_ATTEMPTS = "SELECT uuid, name, start, duration, floor_reached FROM `envy_battle_tower_players` ORDER BY floor_reached DESC LIMIT 10;";
 

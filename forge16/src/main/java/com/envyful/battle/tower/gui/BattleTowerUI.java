@@ -54,6 +54,10 @@ public class BattleTowerUI {
     }
 
     private static boolean onCooldown(BattleTowerAttribute.AttemptDetails lastAttempt) {
+        if (1 == 1) {
+            return false;
+        }
+
         if (lastAttempt == null) {
             return false;
         }

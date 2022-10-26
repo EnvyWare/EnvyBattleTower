@@ -19,15 +19,18 @@ import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
+import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
+import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -106,8 +109,16 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         trainer.yRot = (float) position.getTrainerPosition().getPitch();
         trainer.xRot = (float) position.getTrainerPosition().getYaw();
         trainer.setBattleAIMode(BattleAIMode.ADVANCED);
+        trainer.setNoAi(true);
+        trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
+        trainer.loadPokemon((ArrayList<Pokemon>) randomLeaderTeam.getY());
+        trainer.getPokemonStorage();
+
+        this.getParent().getParent().level.addFreshEntity(trainer);
 
         this.getParent().teleport(position.getPlayerPosition());
+
+        StorageProxy.getParty(this.getParent().getParent()).heal();
 
         BattleBuilder.builder()
                 .startSync()
@@ -119,6 +130,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .rules(this.createRules())
                 .expEnabled(this.manager.getConfig().isAllowExpGain())
                 .allowSpectators(false)
+                .startHandler(battleStartedEvent -> {})
                 .endHandler(battleEndEvent -> {
                     trainer.remove();
 
@@ -159,6 +171,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                         this.finishAttempt();
                         return;
                     }
+
+                    System.out.println("CURRENT FLOOR: " + this.currentFloor);
 
                     if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
                         this.finishAttempt();
