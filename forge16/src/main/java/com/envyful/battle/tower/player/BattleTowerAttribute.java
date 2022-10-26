@@ -20,6 +20,7 @@ import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
+import com.pixelmonmod.pixelmon.api.storage.TrainerPartyStorage;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
@@ -30,7 +31,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,8 +111,15 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         trainer.setBattleAIMode(BattleAIMode.ADVANCED);
         trainer.setNoAi(true);
         trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
-        trainer.loadPokemon((ArrayList<Pokemon>) randomLeaderTeam.getY());
-        trainer.getPokemonStorage();
+        TrainerPartyStorage pokemonStorage = trainer.getPokemonStorage();
+
+        for(int i = 0; i < 6; ++i) {
+            pokemonStorage.set(i, null);
+        }
+
+        for (Pokemon pokemon : randomLeaderTeam.getY()) {
+            pokemonStorage.add(pokemon);
+        }
 
         this.getParent().getParent().level.addFreshEntity(trainer);
 
