@@ -135,8 +135,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         private int startFloor = 0;
         private int endFloor = 1000;
         private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/", Lists.newArrayList("ay %player%"), Lists.newArrayList("be %player%")))
-        );
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/")));
 
         public TeamPossibilities() {
         }
@@ -159,13 +158,15 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
         private String paste;
         private transient List<Pokemon> team;
-        private List<String> playerWinCommands;
-        private List<String> playerLossCommands;
+        private ConfigRandomWeightedSet<Commands> playerWinCommands = new ConfigRandomWeightedSet<>(
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new Commands(Lists.newArrayList("broadcast %player%")))
+        );
+        private ConfigRandomWeightedSet<Commands> playerLossCommands = new ConfigRandomWeightedSet<>(
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new Commands(Lists.newArrayList("broadcast %player%")))
+        );
 
-        public PokePaste(String paste, List<String> playerWinCommands, List<String> playerLossCommands) {
+        public PokePaste(String paste) {
             this.paste = paste;
-            this.playerWinCommands = playerWinCommands;
-            this.playerLossCommands = playerLossCommands;
         }
 
         public PokePaste() {
@@ -180,11 +181,28 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         }
 
         public List<String> getPlayerWinCommands() {
-            return this.playerWinCommands;
+            return this.playerWinCommands.getRandom().getCommands();
         }
 
         public List<String> getPlayerLossCommands() {
-            return this.playerLossCommands;
+            return this.playerLossCommands.getRandom().getCommands();
+        }
+    }
+
+    @ConfigSerializable
+    public static class Commands {
+
+        private List<String> commands;
+
+        public Commands(List<String> commands) {
+            this.commands = commands;
+        }
+
+        public Commands() {
+        }
+
+        public List<String> getCommands() {
+            return this.commands;
         }
     }
 }
