@@ -259,6 +259,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
             this.bestAttempt = attempt;
         }
 
+        this.getParent().teleport(this.manager.getConfig().getReturnPosition());
+
         this.attemptStart = -1;
         this.currentFloor = 0;
     }

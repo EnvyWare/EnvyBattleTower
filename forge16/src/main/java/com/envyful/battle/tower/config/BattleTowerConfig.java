@@ -34,6 +34,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
             "one", new TeamPossibilities()
     );
 
+    private ConfigLocation returnPosition = new ConfigLocation(
+            "world", 0, 0, 0, 0, 0
+    );
+
     private int maxFloor = -1;
     private long cooldownSeconds = TimeUnit.DAYS.toSeconds(1);
     private boolean allowExpGain = false;
@@ -96,6 +100,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public List<String> getAttemptFinishWinCommands() {
         return this.attemptFinishWinCommands;
+    }
+
+    public ConfigLocation getReturnPosition() {
+        return this.returnPosition;
     }
 
     @ConfigSerializable
