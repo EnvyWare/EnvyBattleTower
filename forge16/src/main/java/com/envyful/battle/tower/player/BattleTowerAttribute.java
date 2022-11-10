@@ -105,6 +105,12 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
         Pair<BattleTowerConfig.PokePaste, List<Pokemon>> randomLeaderTeam = getRandomLeaderTeam();
 
+        if (randomLeaderTeam == null) {
+            EnvyBattleTower.getLogger().error("There was not a valid team found for " + this.currentFloor + ". Ending attempt safely");
+            this.finishAttempt();
+            return;
+        }
+
         trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
         trainer.yRot = (float) position.getTrainerPosition().getPitch();
         trainer.xRot = (float) position.getTrainerPosition().getYaw();
@@ -213,10 +219,23 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     }
 
     private Pair<BattleTowerConfig.PokePaste, List<Pokemon>> getRandomLeaderTeam() {
-        List<Pokemon> team = Lists.newArrayList();
-        BattleTowerConfig.PokePaste random = this.manager.getConfig().getTeamPossibilities(this.currentFloor).getTeams().getWeightedSet().getRandom();
+        BattleTowerConfig.TeamPossibilities teamPossibilities = this.manager.getConfig().getTeamPossibilities(this.currentFloor);
 
-        for (Pokemon pokemon : random.getTeam()) {
+        if (teamPossibilities == null || teamPossibilities.getTeams() == null || teamPossibilities.getTeams().getWeightedSet() == null ||
+            teamPossibilities.getTeams().getWeightedSet().getRandom() == null) {
+            return null;
+        }
+
+        BattleTowerConfig.PokePaste random = this.manager.getConfig().getTeamPossibilities(this.currentFloor).getTeams().getWeightedSet().getRandom();
+        List<Pokemon> team = Lists.newArrayList();
+        List<Pokemon> pokePasteTeam = random.getTeam();
+
+        if (pokePasteTeam == null) {
+            EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random.toString());
+            return null;
+        }
+
+        for (Pokemon pokemon : pokePasteTeam) {
             Pokemon copy = PokemonBuilder.copy(pokemon).build();
             copy.heal();
             team.add(copy);

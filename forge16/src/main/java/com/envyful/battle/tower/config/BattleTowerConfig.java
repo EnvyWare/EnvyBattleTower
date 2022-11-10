@@ -187,6 +187,11 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         public List<String> getPlayerLossCommands() {
             return this.playerLossCommands.getRandom().getCommands();
         }
+
+        @Override
+        public String toString() {
+            return this.paste;
+        }
     }
 
     @ConfigSerializable

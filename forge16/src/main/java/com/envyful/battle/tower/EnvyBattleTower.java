@@ -21,6 +21,8 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 
 @Mod("envybattletower")
 public class EnvyBattleTower {
+
+    private static final Logger LOGGER = LogManager.getLogger("envybattletower");
 
     private static EnvyBattleTower instance;
 
@@ -109,5 +113,9 @@ public class EnvyBattleTower {
 
     public static EnvyBattleTower getInstance() {
         return instance;
+    }
+
+    public static Logger getLogger() {
+        return LOGGER;
     }
 }
