@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/EnvyWare/EnvyBattleTower/issues"
 
 [[mods]]
 modId="envybattletower"
-version="1.0.2"
+version="1.0.3"
 displayName="EnvyBattleTower"
 displayURL="https://github.com/EnvyWare"
 credits="https://github.com/EnvyWare"
