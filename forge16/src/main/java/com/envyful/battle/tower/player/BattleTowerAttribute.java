@@ -26,6 +26,7 @@ import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
+import net.minecraft.world.World;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -102,6 +103,21 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
     public void beginBattle() {
         BattleTowerConfig.PossiblePosition position = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
+
+        if (position == null) {
+            EnvyBattleTower.getLogger().error("Invalid trainer positions found in battle tower config");
+            this.finishAttempt();
+            return;
+        }
+
+        World world = UtilWorld.findWorld(position.getTrainerPosition().getWorldName());
+
+        if (world == null) {
+            EnvyBattleTower.getLogger().error("Invalid world name found in config: " + position.getTrainerPosition().getWorldName());
+            this.finishAttempt();
+            return;
+        }
+
         NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
         Pair<BattleTowerConfig.PokePaste, List<Pokemon>> randomLeaderTeam = getRandomLeaderTeam();
 
