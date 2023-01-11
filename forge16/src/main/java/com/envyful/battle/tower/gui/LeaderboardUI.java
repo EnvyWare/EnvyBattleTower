@@ -6,6 +6,7 @@ import com.envyful.api.forge.config.UtilConfigItem;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.gui.pane.Pane;
+import com.envyful.api.text.parse.SimplePlaceholder;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.player.BattleTowerEntry;
@@ -35,14 +36,14 @@ public class LeaderboardUI {
 
             if (cache.size() <= i) {
                 pane.set(pos % 9, pos / 9, GuiFactory.displayable(UtilConfigItem.fromConfigItem(config.getUnfilledRank(),
-                        name -> name.replace("%rank%", String.valueOf(rank)))));
+                        (SimplePlaceholder) name -> name.replace("%rank%", String.valueOf(rank)))));
                 continue;
             }
 
             BattleTowerEntry battleTowerEntry = cache.get(i);
 
             pane.set(pos % 9, pos / 9, GuiFactory.displayable(UtilConfigItem.fromConfigItem(config.getLeaderboardPlayer(),
-                    name -> name.replace("%player%", battleTowerEntry.getName())
+                    (SimplePlaceholder) name -> name.replace("%player%", battleTowerEntry.getName())
                             .replace("%uuid%", battleTowerEntry.getUuid().toString())
                             .replace("%rank%", String.valueOf(rank)))));
         }
