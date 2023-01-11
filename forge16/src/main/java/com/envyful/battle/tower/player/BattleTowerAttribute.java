@@ -130,12 +130,12 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
         trainer.yRot = (float) position.getTrainerPosition().getPitch();
         trainer.xRot = (float) position.getTrainerPosition().getYaw();
-        trainer.setBattleAIMode(BattleAIMode.ADVANCED);
         trainer.setNoAi(true);
+        trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
+        trainer.setBattleAIMode(BattleAIMode.ADVANCED);
         trainer.winMoney = 0;
         trainer.winMessage = "";
         trainer.loseMessage = "";
-        trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
         TrainerPartyStorage pokemonStorage = trainer.getPokemonStorage();
 
         for(int i = 0; i < 6; ++i) {
