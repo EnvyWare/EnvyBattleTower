@@ -32,7 +32,7 @@ public class LeaderboardUI {
 
         for (int i = 0; i < positions.size(); i++) {
             Integer pos = positions.get(i);
-            int rank = i + (10 * page) + 1;
+            int rank = i + (10 * (page - 1)) + 1;
 
             if (cache.size() <= i) {
                 pane.set(pos % 9, pos / 9, GuiFactory.displayable(UtilConfigItem.fromConfigItem(config.getUnfilledRank(),

@@ -1,6 +1,7 @@
 package com.envyful.battle.tower;
 
 import com.envyful.api.concurrency.UtilConcurrency;
+import com.envyful.api.concurrency.UtilLogger;
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.database.impl.SimpleHikariDatabase;
@@ -47,6 +48,7 @@ public class EnvyBattleTower {
 
     public EnvyBattleTower() {
         instance = this;
+        UtilLogger.setLogger(LOGGER);
         GuiFactory.setPlatformFactory(new ForgeGuiFactory());
 
         MinecraftForge.EVENT_BUS.register(this);
