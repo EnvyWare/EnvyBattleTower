@@ -39,6 +39,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
     );
 
     private int maxFloor = -1;
+    private boolean allowSpectating = false;
     private long cooldownSeconds = TimeUnit.DAYS.toSeconds(1);
     private boolean allowExpGain = false;
     private Map<String, ConfigBattleRule> battleRules = ImmutableMap.of(
@@ -104,6 +105,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public ConfigLocation getReturnPosition() {
         return this.returnPosition;
+    }
+
+    public boolean isAllowSpectating() {
+        return this.allowSpectating;
     }
 
     @ConfigSerializable

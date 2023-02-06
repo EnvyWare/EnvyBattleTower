@@ -161,7 +161,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
                 .rules(this.createRules())
                 .expEnabled(this.manager.getConfig().isAllowExpGain())
-                .allowSpectators(false)
+                .allowSpectators(this.manager.getConfig().isAllowSpectating())
                 .startHandler(battleStartedEvent -> {})
                 .endHandler(battleEndEvent -> {
                     trainer.remove();
