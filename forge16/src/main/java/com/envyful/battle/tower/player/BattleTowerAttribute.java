@@ -26,6 +26,8 @@ import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
+import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
+import com.pixelmonmod.pixelmon.enums.EnumOldGenMode;
 import net.minecraft.world.World;
 
 import java.sql.Connection;
@@ -136,6 +138,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         trainer.winMoney = 0;
         trainer.winMessage = "";
         trainer.loseMessage = "";
+        trainer.setMegaItem(EnumMegaItemsUnlocked.Both);
+        trainer.setOldGenMode(EnumOldGenMode.Both);
         TrainerPartyStorage pokemonStorage = trainer.getPokemonStorage();
 
         for(int i = 0; i < 6; ++i) {
@@ -203,8 +207,6 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                         this.finishAttempt();
                         return;
                     }
-
-                    System.out.println("CURRENT FLOOR: " + this.currentFloor);
 
                     if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
                         this.finishAttempt();
