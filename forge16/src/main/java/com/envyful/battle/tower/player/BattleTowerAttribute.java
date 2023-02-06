@@ -249,7 +249,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         List<Pokemon> team = Lists.newArrayList();
         List<Pokemon> pokePasteTeam = random.getTeam();
 
-        if (pokePasteTeam == null) {
+        if (pokePasteTeam == null || pokePasteTeam.isEmpty()) {
             EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random.toString());
             return null;
         }
