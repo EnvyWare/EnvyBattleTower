@@ -92,7 +92,7 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
     public static class LeaderboardUI {
 
         private ConfigInterface guiSettings = new ConfigInterface(
-                "EnvyBattleTower", 3, "BLOCK", ImmutableMap.of("one",
+                "EnvyBattleTower", 6, "BLOCK", ImmutableMap.of("one",
                 ConfigItem.builder()
                         .type("minecraft:black_stained_glass_pane")
                         .amount(1)
