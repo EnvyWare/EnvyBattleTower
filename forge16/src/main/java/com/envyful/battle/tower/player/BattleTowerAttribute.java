@@ -100,18 +100,19 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     public void startAttempt() {
         this.attemptStart = System.currentTimeMillis();
         this.currentFloor = 1;
-        this.beginBattle();
-    }
 
-    public void beginBattle() {
-        BattleTowerConfig.PossiblePosition position = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
+        BattleTowerConfig.PossiblePosition randomElement = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
 
-        if (position == null) {
+        if (randomElement == null) {
             EnvyBattleTower.getLogger().error("Invalid trainer positions found in battle tower config");
             this.finishAttempt();
             return;
         }
 
+        this.beginBattle(randomElement);
+    }
+
+    public void beginBattle(BattleTowerConfig.PossiblePosition position) {
         World world = UtilWorld.findWorld(position.getTrainerPosition().getWorldName());
 
         if (world == null) {
@@ -234,7 +235,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                     }
 
                     this.currentFloor++;
-                    this.beginBattle();
+                    this.beginBattle(position);
                 })
                 .start();
     }
