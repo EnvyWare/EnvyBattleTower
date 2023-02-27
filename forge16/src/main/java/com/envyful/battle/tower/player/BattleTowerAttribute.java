@@ -24,6 +24,7 @@ import com.pixelmonmod.pixelmon.api.storage.TrainerPartyStorage;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
+import com.pixelmonmod.pixelmon.battles.status.NoStatus;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
 import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
@@ -155,7 +156,12 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
         this.getParent().teleport(position.getPlayerPosition());
 
-        StorageProxy.getParty(this.getParent().getParent()).heal();
+        for (Pokemon pokemon : StorageProxy.getParty(this.getParent().getParent()).getAll()) {
+            if (pokemon != null) {
+                pokemon.heal();
+                pokemon.setStatus(NoStatus.noStatus);
+            }
+        }
 
         BattleBuilder.builder()
                 .startSync()

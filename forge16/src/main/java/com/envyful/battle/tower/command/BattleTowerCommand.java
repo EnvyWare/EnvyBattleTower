@@ -20,7 +20,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
         }
 )
 @Permissible("com.envyful.battle.tower.command")
-@SubCommands(ReloadCommand.class)
+@SubCommands({ReloadCommand.class, ValidateCommand.class})
 public class BattleTowerCommand {
 
     @CommandProcessor

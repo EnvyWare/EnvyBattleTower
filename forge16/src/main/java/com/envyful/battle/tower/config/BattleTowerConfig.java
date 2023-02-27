@@ -178,6 +178,10 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         public PokePaste() {
         }
 
+        public String getPaste() {
+            return this.paste;
+        }
+
         public List<Pokemon> getTeam() {
             if (this.team == null) {
                 try {
