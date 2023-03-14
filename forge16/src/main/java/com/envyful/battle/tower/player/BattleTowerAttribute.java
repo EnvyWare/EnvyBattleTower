@@ -55,6 +55,10 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         super(uuid);
     }
 
+    public void setLastAttempt(AttemptDetails lastAttempt) {
+        this.lastAttempt = lastAttempt;
+    }
+
     public AttemptDetails getLastAttempt() {
         if (this.lastAttempt == null) {
             if (this.attempts.isEmpty()) {
