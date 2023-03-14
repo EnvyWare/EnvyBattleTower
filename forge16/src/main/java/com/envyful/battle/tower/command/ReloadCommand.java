@@ -7,7 +7,7 @@ import com.envyful.api.command.annotate.executor.CommandProcessor;
 import com.envyful.api.command.annotate.executor.Sender;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.battle.tower.EnvyBattleTower;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.util.Util;
 
 @Command(
@@ -19,7 +19,7 @@ import net.minecraft.util.Util;
 public class ReloadCommand {
 
     @CommandProcessor
-    public void onCommand(@Sender ServerPlayerEntity sender) {
+    public void onCommand(@Sender ICommandSource sender) {
         EnvyBattleTower.getInstance().reloadConfig();
         sender.sendMessage(UtilChatColour.colour("&a&l(!) &aReloaded"), Util.NIL_UUID);
     }
