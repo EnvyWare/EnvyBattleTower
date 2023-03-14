@@ -6,6 +6,8 @@ import com.envyful.api.forge.config.UtilConfigItem;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.gui.pane.Pane;
+import com.envyful.api.text.parse.SimplePlaceholder;
+import com.envyful.api.time.UtilTimeFormat;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
@@ -33,7 +35,11 @@ public class BattleTowerUI {
                 .extendedConfigItem(player, pane, config.getLeaderboardButton());
 
         if (onCooldown(lastAttempt)) {
-            UtilConfigItem.builder().extendedConfigItem(player, pane, config.getCooldownButton());
+            UtilConfigItem.builder().extendedConfigItem(player, pane, config.getCooldownButton(),
+                    (SimplePlaceholder) value -> value.replace("%remaining%",
+                            UtilTimeFormat.getFormattedDuration(
+                                    TimeUnit.SECONDS.toMillis(EnvyBattleTower.getInstance().getConfig().getCooldownSeconds()) - (System.currentTimeMillis() - lastAttempt.getAttemptStart())
+                            )));
         } else {
             UtilConfigItem.builder()
                     .singleClick()
