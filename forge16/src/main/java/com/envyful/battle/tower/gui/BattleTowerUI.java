@@ -35,7 +35,8 @@ public class BattleTowerUI {
                 .extendedConfigItem(player, pane, config.getLeaderboardButton());
 
         if (onCooldown(lastAttempt)) {
-            UtilConfigItem.builder().extendedConfigItem(player, pane, config.getCooldownButton(),
+            UtilConfigItem.builder()
+                    .extendedConfigItem(player, pane, config.getCooldownButton(),
                     (SimplePlaceholder) value -> value.replace("%remaining%",
                             UtilTimeFormat.getFormattedDuration(
                                     TimeUnit.SECONDS.toMillis(EnvyBattleTower.getInstance().getConfig().getCooldownSeconds()) - (System.currentTimeMillis() - lastAttempt.getAttemptStart())

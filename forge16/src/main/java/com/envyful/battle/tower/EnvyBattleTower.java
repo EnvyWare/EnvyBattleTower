@@ -6,8 +6,10 @@ import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.database.impl.SimpleHikariDatabase;
 import com.envyful.api.database.leaderboard.Order;
+import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
+import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.leaderboard.Leaderboard;
@@ -18,6 +20,7 @@ import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import com.envyful.battle.tower.player.BattleTowerEntry;
+import net.minecraft.util.Util;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -40,7 +43,7 @@ public class EnvyBattleTower {
     private static EnvyBattleTower instance;
 
     private ForgePlayerManager playerManager = new ForgePlayerManager();
-    private ForgeCommandFactory commandFactory = new ForgeCommandFactory();
+    private ForgeCommandFactory commandFactory = new ForgeCommandFactory(playerManager);
 
     private BattleTowerConfig config;
     private BattleTowerGraphics graphics;
@@ -65,6 +68,7 @@ public class EnvyBattleTower {
                 .formatter(BattleTowerEntry::fromQuery)
                 .order(Order.DESCENDING)
                 .table("envy_battle_tower_players")
+                .column("floor_reached")
                 .pageSize(10)
                 .build();
         UtilConcurrency.runAsync(this::createTable);
@@ -83,6 +87,17 @@ public class EnvyBattleTower {
     public void onCommandRegister(RegisterCommandsEvent event) {
         this.playerManager.registerAttribute(this, BattleTowerAttribute.class);
         this.commandFactory.registerCompleter(new ForgePlayerCompleter());
+
+        this.commandFactory.registerInjector(ForgeEnvyPlayer.class, (sender, args) -> {
+            ForgeEnvyPlayer onlinePlayer = this.playerManager.getOnlinePlayer(args[0]);
+
+            if (onlinePlayer == null) {
+                sender.sendMessage(UtilChatColour.colour("&c&l(!) &cCannot find that player"), Util.NIL_UUID);
+            }
+
+            return onlinePlayer;
+        });
+
         this.commandFactory.registerCommand(event.getDispatcher(), new BattleTowerCommand());
     }
 
