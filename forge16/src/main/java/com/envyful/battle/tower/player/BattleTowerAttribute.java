@@ -14,6 +14,7 @@ import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.pixelmonmod.pixelmon.api.battles.BattleAIMode;
 import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
@@ -29,6 +30,7 @@ import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
 import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
 import com.pixelmonmod.pixelmon.enums.EnumOldGenMode;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import java.sql.Connection;
@@ -36,6 +38,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower> {
@@ -43,6 +46,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     private List<AttemptDetails> attempts = Lists.newArrayList();
     private AttemptDetails lastAttempt = null;
     private AttemptDetails bestAttempt = null;
+    private Map<UUID, ItemStack> heldItem = Maps.newHashMap();
 
     private long attemptStart;
     private int currentFloor;
@@ -164,6 +168,15 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
             if (pokemon != null) {
                 pokemon.heal();
                 pokemon.setStatus(NoStatus.noStatus);
+                ItemStack itemStack = this.heldItem.remove(pokemon.getUUID());
+
+                if (itemStack != null) {
+                    pokemon.setHeldItem(itemStack);
+                }
+
+                if (pokemon.getHeldItem() != null) {
+                    this.heldItem.put(pokemon.getUUID(), pokemon.getHeldItem().copy());
+                }
             }
         }
 
@@ -287,6 +300,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     }
 
     public void finishAttempt() {
+        this.heldItem.clear();
         long duration = System.currentTimeMillis() - this.attemptStart;
 
         try (Connection connection = this.manager.getDatabase().getConnection();
