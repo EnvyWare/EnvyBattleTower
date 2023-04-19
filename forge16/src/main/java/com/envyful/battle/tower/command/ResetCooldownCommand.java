@@ -12,6 +12,8 @@ import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.command.tab.ForgePlayerCompleter;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import net.minecraft.command.ICommandSource;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.StringTextComponent;
 
 @Command(
         value = "resetcooldown",
@@ -27,10 +29,11 @@ public class ResetCooldownCommand {
         BattleTowerAttribute attribute = target.getAttribute(EnvyBattleTower.class);
 
         if (attribute == null) {
+            sender.sendMessage(new StringTextComponent("Failed to reset cooldown for " + target.getName() + " please try again in a minute!"), Util.NIL_UUID);
             return;
         }
 
         attribute.setLastAttempt(null);
-
+        sender.sendMessage(new StringTextComponent("Cooldown reset for " + target.getName()), Util.NIL_UUID);
     }
 }
