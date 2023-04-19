@@ -300,6 +300,10 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     }
 
     public void finishAttempt() {
+        if (this.attemptStart == -1) {
+            return;
+        }
+
         this.heldItem.clear();
         long duration = System.currentTimeMillis() - this.attemptStart;
 
@@ -352,6 +356,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
     @Override
     public void save() {
+        this.finishAttempt();
+
         try (Connection connection = this.manager.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.UPDATE_USERNAME)) {
             preparedStatement.setString(1, this.parent.getName());
