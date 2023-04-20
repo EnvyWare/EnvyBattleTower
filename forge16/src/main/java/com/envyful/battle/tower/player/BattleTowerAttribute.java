@@ -26,8 +26,10 @@ import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRules;
 import com.pixelmonmod.pixelmon.battles.api.rules.teamselection.TeamSelectionRegistry;
 import com.pixelmonmod.pixelmon.battles.status.NoStatus;
+import com.pixelmonmod.pixelmon.comm.EnumUpdateType;
 import com.pixelmonmod.pixelmon.entities.npcs.NPCTrainer;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.ServerNPCRegistry;
+import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
 import com.pixelmonmod.pixelmon.enums.EnumOldGenMode;
 import net.minecraft.item.ItemStack;
@@ -177,6 +179,9 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
                 if (pokemon.getHeldItem() != null) {
                     this.heldItem.put(pokemon.getUUID(), pokemon.getHeldItem().copy());
                 }
+
+                pokemon.getPixelmonEntity().ifPresent(PixelmonEntity::resetDataWatchers);
+                pokemon.getPixelmonEntity().ifPresent(pixelmonEntity -> pixelmonEntity.update(EnumUpdateType.ALL));
             }
         }
 
