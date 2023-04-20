@@ -33,7 +33,7 @@ public class ResetCooldownCommand {
             return;
         }
 
-        attribute.setLastAttempt(null);
+        attribute.setLastAttempt(new BattleTowerAttribute.AttemptDetails(0, 0, 0));
         sender.sendMessage(new StringTextComponent("Cooldown reset for " + target.getName()), Util.NIL_UUID);
     }
 }
