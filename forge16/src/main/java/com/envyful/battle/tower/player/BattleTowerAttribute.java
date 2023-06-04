@@ -1,11 +1,11 @@
 package com.envyful.battle.tower.player;
 
-import com.envyful.api.forge.player.ForgeEnvyPlayer;
+import com.envyful.api.concurrency.UtilConcurrency;
+import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
 import com.envyful.api.forge.server.UtilForgeServer;
 import com.envyful.api.forge.world.UtilWorld;
 import com.envyful.api.math.UtilRandom;
-import com.envyful.api.player.EnvyPlayer;
 import com.envyful.api.reforged.battle.BattleBuilder;
 import com.envyful.api.reforged.battle.BattleParticipantBuilder;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
@@ -34,6 +34,7 @@ import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
 import com.pixelmonmod.pixelmon.enums.EnumOldGenMode;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,6 +43,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower> {
 
@@ -53,12 +55,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     private long attemptStart;
     private int currentFloor;
 
-    public BattleTowerAttribute(EnvyBattleTower manager, EnvyPlayer<?> parent) {
-        super(manager, (ForgeEnvyPlayer) parent);
-    }
-
-    public BattleTowerAttribute(UUID uuid) {
-        super(uuid);
+    public BattleTowerAttribute(EnvyBattleTower manager, ForgePlayerManager playerManager) {
+        super(manager, playerManager);
     }
 
     public void setLastAttempt(AttemptDetails lastAttempt) {
@@ -133,165 +131,168 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         }
 
         NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
-        Pair<BattleTowerConfig.PokePaste, List<Pokemon>> randomLeaderTeam = getRandomLeaderTeam();
 
-        if (randomLeaderTeam == null) {
-            EnvyBattleTower.getLogger().error("There was not a valid team found for " + this.currentFloor + ". Ending attempt safely");
-            this.finishAttempt();
-            return;
-        }
-
-        trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
-        trainer.yRot = (float) position.getTrainerPosition().getPitch();
-        trainer.xRot = (float) position.getTrainerPosition().getYaw();
-        trainer.setNoAi(true);
-        trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
-        trainer.setBattleAIMode(BattleAIMode.ADVANCED);
-        trainer.winMoney = 0;
-        trainer.winMessage = "";
-        trainer.loseMessage = "";
-        trainer.setMegaItem(EnumMegaItemsUnlocked.Both);
-        trainer.setOldGenMode(EnumOldGenMode.Both);
-        TrainerPartyStorage pokemonStorage = trainer.getPokemonStorage();
-
-        for(int i = 0; i < 6; ++i) {
-            pokemonStorage.set(i, null);
-        }
-
-        for (Pokemon pokemon : randomLeaderTeam.getY()) {
-            pokemonStorage.add(pokemon);
-        }
-
-        this.getParent().getParent().level.addFreshEntity(trainer);
-
-        this.getParent().teleport(position.getPlayerPosition());
-
-        for (Pokemon pokemon : StorageProxy.getParty(this.getParent().getParent()).getAll()) {
-            if (pokemon != null) {
-                pokemon.heal();
-                pokemon.setStatus(NoStatus.noStatus);
-                ItemStack itemStack = this.heldItem.remove(pokemon.getUUID());
-
-                if (itemStack != null) {
-                    pokemon.setHeldItem(itemStack);
-                }
-
-                if (pokemon.getHeldItem() != null) {
-                    this.heldItem.put(pokemon.getUUID(), pokemon.getHeldItem().copy());
-                }
-
-                pokemon.getPixelmonEntity().ifPresent(PixelmonEntity::resetDataWatchers);
-                pokemon.getPixelmonEntity().ifPresent(pixelmonEntity -> pixelmonEntity.update(EnumUpdateType.ALL));
+        getRandomLeaderTeam().whenCompleteAsync((randomLeaderTeam, throwable) -> {
+            if (randomLeaderTeam == null) {
+                EnvyBattleTower.getLogger().error("There was not a valid team found for " + this.currentFloor + ". Ending attempt safely");
+                this.finishAttempt();
+                return;
             }
-        }
 
-        BattleBuilder.builder()
-                .startSync()
-                .startDelayTicks(5L)
-                .teamOne(BattleParticipantBuilder.builder().entity(this.getParent().getParent()).build())
-                .teamTwo(BattleParticipantBuilder.builder().entity(trainer).team(randomLeaderTeam.getY().toArray(new Pokemon[0])).build())
-                .teamSelection()
-                .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
-                .rules(this.createRules())
-                .expEnabled(this.manager.getConfig().isAllowExpGain())
-                .allowSpectators(this.manager.getConfig().isAllowSpectating())
-                .startHandler(battleStartedEvent -> {})
-                .endHandler(battleEndEvent -> {
-                    trainer.remove();
+            trainer.setPos(position.getTrainerPosition().getPosX(), position.getTrainerPosition().getPosY(), position.getTrainerPosition().getPosZ());
+            trainer.yRot = (float) position.getTrainerPosition().getPitch();
+            trainer.xRot = (float) position.getTrainerPosition().getYaw();
+            trainer.setNoAi(true);
+            trainer.init(ServerNPCRegistry.trainers.getRandomBaseWithData());
+            trainer.setBattleAIMode(BattleAIMode.ADVANCED);
+            trainer.winMoney = 0;
+            trainer.winMessage = "";
+            trainer.loseMessage = "";
+            trainer.setMegaItem(EnumMegaItemsUnlocked.Both);
+            trainer.setOldGenMode(EnumOldGenMode.Both);
+            TrainerPartyStorage pokemonStorage = trainer.getPokemonStorage();
 
-                    if (battleEndEvent.isAbnormal()) {
-                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
-                            UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.getParent().getName())
-                                    .replace("%floor%", String.valueOf(this.currentFloor))
-                            );
-                        }
+            for(int i = 0; i < 6; ++i) {
+                pokemonStorage.set(i, null);
+            }
 
-                        this.finishAttempt();
-                        return;
+            for (Pokemon pokemon : randomLeaderTeam.getY()) {
+                pokemonStorage.add(pokemon);
+            }
+
+            this.parent.getParent().level.addFreshEntity(trainer);
+
+            this.parent.teleport(position.getPlayerPosition());
+
+            for (Pokemon pokemon : StorageProxy.getParty(this.parent.getParent()).getAll()) {
+                if (pokemon != null) {
+                    pokemon.setStatus(NoStatus.noStatus);
+                    pokemon.heal();
+                    ItemStack itemStack = this.heldItem.remove(pokemon.getUUID());
+
+                    if (itemStack != null) {
+                        pokemon.setHeldItem(itemStack);
                     }
 
-                    BattleResults battleResults = battleEndEvent.getResult(this.getParent().getParent()).orElse(null);
-
-                    if (battleResults == null) {
-                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
-                            UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.getParent().getName())
-                                    .replace("%floor%", String.valueOf(this.currentFloor))
-                            );
-                        }
-
-                        this.finishAttempt();
-                        return;
+                    if (pokemon.getHeldItem() != null) {
+                        this.heldItem.put(pokemon.getUUID(), pokemon.getHeldItem().copy());
                     }
 
-                    if (battleResults != BattleResults.VICTORY) {
-                        for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
-                            UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.getParent().getName())
-                                    .replace("%floor%", String.valueOf(this.currentFloor))
-                            );
+                    pokemon.getPixelmonEntity().ifPresent(PixelmonEntity::resetDataWatchers);
+                    pokemon.getPixelmonEntity().ifPresent(pixelmonEntity -> pixelmonEntity.update(EnumUpdateType.ALL));
+                }
+            }
+
+            BattleBuilder.builder()
+                    .startSync()
+                    .startDelayTicks(5L)
+                    .teamOne(BattleParticipantBuilder.builder().entity(this.parent.getParent()).build())
+                    .teamTwo(BattleParticipantBuilder.builder().entity(trainer).team(randomLeaderTeam.getY().toArray(new Pokemon[0])).build())
+                    .teamSelection()
+                    .teamSelectionBuilder(TeamSelectionRegistry.builder().notCloseable().hideOpponentTeam().showRules(false))
+                    .rules(this.createRules())
+                    .expEnabled(this.manager.getConfig().isAllowExpGain())
+                    .allowSpectators(this.manager.getConfig().isAllowSpectating())
+                    .startHandler(battleStartedEvent -> {})
+                    .endHandler(battleEndEvent -> {
+                        trainer.remove();
+
+                        if (battleEndEvent.isAbnormal()) {
+                            for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                                UtilForgeServer.executeCommand(command
+                                        .replace("%player%", this.parent.getName())
+                                        .replace("%floor%", String.valueOf(this.currentFloor))
+                                );
+                            }
+
+                            this.finishAttempt();
+                            return;
                         }
 
-                        this.finishAttempt();
-                        return;
-                    }
+                        BattleResults battleResults = battleEndEvent.getResult(this.parent.getParent()).orElse(null);
 
-                    if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
-                        this.finishAttempt();
-                        for (String command : this.manager.getConfig().getAttemptFinishWinCommands()) {
-                            UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.getParent().getName())
-                                    .replace("%floor%", String.valueOf(this.currentFloor))
-                            );
+                        if (battleResults == null) {
+                            for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                                UtilForgeServer.executeCommand(command
+                                        .replace("%player%", this.parent.getName())
+                                        .replace("%floor%", String.valueOf(this.currentFloor))
+                                );
+                            }
+
+                            this.finishAttempt();
+                            return;
+                        }
+
+                        if (battleResults != BattleResults.VICTORY) {
+                            for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
+                                UtilForgeServer.executeCommand(command
+                                        .replace("%player%", this.parent.getName())
+                                        .replace("%floor%", String.valueOf(this.currentFloor))
+                                );
+                            }
+
+                            this.finishAttempt();
+                            return;
+                        }
+
+                        if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
+                            this.finishAttempt();
+                            for (String command : this.manager.getConfig().getAttemptFinishWinCommands()) {
+                                UtilForgeServer.executeCommand(command
+                                        .replace("%player%", this.parent.getName())
+                                        .replace("%floor%", String.valueOf(this.currentFloor))
+                                );
+                            }
+
+                            for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
+                                UtilForgeServer.executeCommand(command
+                                        .replace("%player%", this.parent.getName())
+                                        .replace("%floor%", String.valueOf(this.currentFloor))
+                                );
+                            }
+                            return;
                         }
 
                         for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
                             UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.getParent().getName())
+                                    .replace("%player%", this.parent.getName())
                                     .replace("%floor%", String.valueOf(this.currentFloor))
                             );
                         }
-                        return;
-                    }
 
-                    for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
-                        UtilForgeServer.executeCommand(command
-                                .replace("%player%", this.getParent().getName())
-                                .replace("%floor%", String.valueOf(this.currentFloor))
-                        );
-                    }
-
-                    this.currentFloor++;
-                    this.beginBattle(position);
-                })
-                .start();
+                        this.currentFloor++;
+                        this.beginBattle(position);
+                    })
+                    .start();
+        }, ServerLifecycleHooks.getCurrentServer());
     }
 
-    private Pair<BattleTowerConfig.PokePaste, List<Pokemon>> getRandomLeaderTeam() {
+    private CompletableFuture<Pair<BattleTowerConfig.PokePaste, List<Pokemon>>> getRandomLeaderTeam() {
         BattleTowerConfig.TeamPossibilities teamPossibilities = this.manager.getConfig().getTeamPossibilities(this.currentFloor);
 
         if (teamPossibilities == null || teamPossibilities.getTeams() == null || teamPossibilities.getTeams().getWeightedSet() == null ||
             teamPossibilities.getTeams().getWeightedSet().getRandom() == null) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
 
         BattleTowerConfig.PokePaste random = this.manager.getConfig().getTeamPossibilities(this.currentFloor).getTeams().getWeightedSet().getRandom();
+
         List<Pokemon> team = Lists.newArrayList();
-        List<Pokemon> pokePasteTeam = random.getTeam();
 
-        if (pokePasteTeam == null || pokePasteTeam.isEmpty()) {
-            EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random.toString());
-            return null;
-        }
+        return UtilConcurrency.supplyAsync(random::getTeam).thenApply(pokePasteTeam -> {
+            if (pokePasteTeam == null || pokePasteTeam.isEmpty()) {
+                EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random.toString());
+                return  null;
+            }
 
-        for (Pokemon pokemon : pokePasteTeam) {
-            Pokemon copy = PokemonBuilder.copy(pokemon).build();
-            copy.heal();
-            team.add(copy);
-        }
+            for (Pokemon pokemon : pokePasteTeam) {
+                Pokemon copy = PokemonBuilder.copy(pokemon).build();
+                copy.heal();
+                team.add(copy);
+            }
 
-        return Pair.of(random, team);
+            return Pair.of(random, team);
+        });
     }
 
     private BattleRules createRules() {
@@ -333,7 +334,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
             this.bestAttempt = attempt;
         }
 
-        this.getParent().teleport(this.manager.getConfig().getReturnPosition());
+        this.parent.teleport(this.manager.getConfig().getReturnPosition());
 
         this.attemptStart = -1;
         this.currentFloor = 0;
