@@ -17,6 +17,7 @@ import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.command.tab.ForgePlayerCompleter;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
+import com.envyful.battle.tower.config.BattleTowerLocale;
 import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import com.envyful.battle.tower.player.BattleTowerEntry;
@@ -46,6 +47,7 @@ public class EnvyBattleTower {
     private ForgeCommandFactory commandFactory = new ForgeCommandFactory(playerManager);
 
     private BattleTowerConfig config;
+    private BattleTowerLocale locale;
     private BattleTowerGraphics graphics;
     private Database database;
     private Leaderboard<BattleTowerEntry> leaderboard;
@@ -104,6 +106,7 @@ public class EnvyBattleTower {
     public void reloadConfig() {
         try {
             this.config = YamlConfigFactory.getInstance(BattleTowerConfig.class);
+            this.locale = YamlConfigFactory.getInstance(BattleTowerLocale.class);
             this.graphics = YamlConfigFactory.getInstance(BattleTowerGraphics.class);
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,6 +115,10 @@ public class EnvyBattleTower {
 
     public BattleTowerConfig getConfig() {
         return this.config;
+    }
+
+    public BattleTowerLocale getLocale() {
+        return this.locale;
     }
 
     public BattleTowerGraphics getGraphics() {

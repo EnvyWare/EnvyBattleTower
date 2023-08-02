@@ -10,6 +10,8 @@ import com.envyful.api.reforged.pixelmon.PokePasteReader;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.pixelmonmod.api.pokemon.PokemonSpecification;
+import com.pixelmonmod.api.pokemon.PokemonSpecificationProxy;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -49,6 +51,11 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     private List<String> attemptFinishLossCommands = Lists.newArrayList("broadcast %player% %floor%");
     private List<String> attemptFinishWinCommands = Lists.newArrayList("broadcast %player% %floor%");
+
+    private List<String> blacklistedPokemon = Lists.newArrayList(
+            "bidoof"
+    );
+    private transient List<PokemonSpecification> blacklistedCache = null;
 
     public BattleTowerConfig() {
         super();
@@ -110,6 +117,28 @@ public class BattleTowerConfig extends AbstractYamlConfig {
 
     public boolean isAllowSpectating() {
         return this.allowSpectating;
+    }
+
+    public boolean isBlacklisted(Pokemon pokemon) {
+        if (pokemon == null) {
+            return false;
+        }
+
+        if (this.blacklistedCache == null) {
+            this.blacklistedCache = Lists.newArrayList();
+
+            for (String s : this.blacklistedPokemon) {
+                this.blacklistedCache.add(PokemonSpecificationProxy.create(s));
+            }
+        }
+
+        for (PokemonSpecification pokemonSpecification : this.blacklistedCache) {
+            if (pokemonSpecification.matches(pokemon)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @ConfigSerializable

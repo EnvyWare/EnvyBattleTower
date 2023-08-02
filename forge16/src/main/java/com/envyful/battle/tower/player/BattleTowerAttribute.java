@@ -1,6 +1,7 @@
 package com.envyful.battle.tower.player;
 
 import com.envyful.api.concurrency.UtilConcurrency;
+import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
 import com.envyful.api.forge.server.UtilForgeServer;
@@ -20,6 +21,7 @@ import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
+import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.api.storage.TrainerPartyStorage;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
@@ -109,6 +111,17 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     public void startAttempt() {
         this.attemptStart = System.currentTimeMillis();
         this.currentFloor = 1;
+
+        PlayerPartyStorage party = StorageProxy.getParty(this.parent.getParent());
+
+        for (Pokemon pokemon : party.getAll()) {
+            if (this.manager.getConfig().isBlacklisted(pokemon)) {
+                for (String s : this.manager.getLocale().getBlacklistedPokemonError()) {
+                    this.parent.message(UtilChatColour.colour(s.replace("%pokemon%", pokemon.getDisplayName())));
+                }
+                return;
+            }
+        }
 
         BattleTowerConfig.PossiblePosition randomElement = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
 
