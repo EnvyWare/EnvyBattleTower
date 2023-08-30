@@ -1,20 +1,8 @@
-buildscript {
-    repositories {
-        jcenter()
-        maven {
-            name = 'forge'
-            url = 'https://files.minecraftforge.net/maven'
-        }
-        maven {
-            url = 'https://plugins.gradle.org/m2/'
-        }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.+', changing: true
-    }
+plugins {
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-apply plugin: 'net.minecraftforge.gradle'
 forgeVersion = "1.16.5"
 
 minecraft {
@@ -46,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.34'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
     implementation 'pixelmon:Pixelmon-1.16.5-9.1.7-server:9.1.7'
 
     shadow group: 'org.spongepowered', name: 'configurate-yaml', version: '4.0.0'
@@ -61,24 +49,37 @@ dependencies {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    archiveName = rootProject.name + '-Forge.jar'
+    setArchiveClassifier('')
+    setArchiveBaseName("${rootProject.name}-Forge")
 
-    relocate('org.spongepowered.configurate', 'com.envyful.battle.tower.forge.shade.configurate')
-    relocate('org.yaml.snakeyaml', 'com.envyful.battle.tower.forge.shade.snakeyaml')
-    relocate('io.leangen.geantyref', 'com.envyful.battle.tower.forge.shade.geantyref')
-    relocate('com.google.gson', 'com.envyful.battle.tower.forge.shade.gson')
-    relocate('com.zaxxer', 'com.envyful.battle.tower.forge.shade.hikari')
-    relocate('org.slf4j', 'com.envyful.battle.tower.forge.shade.slf4j')
-    relocate('com.envyful.api', 'com.envyful.battle.tower.forge.shade.envy.api')
-    relocate('org.bstats', 'com.envyful.battle.tower.forge.shade.bstats')
-
+    relocate('org.spongepowered.configurate', 'com.envyful.battle.tower.shade.configurate')
+    relocate('org.yaml.snakeyaml', 'com.envyful.battle.tower.shade.snakeyaml')
+    relocate('io.leangen.geantyref', 'com.envyful.battle.tower.shade.geantyref')
+    relocate('com.google.gson', 'com.envyful.battle.tower.shade.gson')
+    relocate('com.zaxxer', 'com.envyful.battle.tower.shade.hikari')
+    relocate('org.slf4j', 'com.envyful.battle.tower.shade.slf4j')
+    relocate('com.envyful.api', 'com.envyful.battle.tower.shade.envy.api')
+    relocate('org.bstats', 'com.envyful.battle.tower.shade.bstats')
+    relocate('com.google.common', 'com.envyful.battle.tower.shade.guava')
+    relocate('org.apache.logging', 'com.envyful.battle.tower.shade.log4j')
+    relocate('io.netty', 'com.envyful.battle.tower.shade.netty')
+    relocate('io.lettuce', 'com.envyful.battle.tower.shade.lettuce')
+    relocate('com.cronutils', 'com.envyful.battle.tower.shade.cronutils')
+    relocate('com.cronutils', 'com.envyful.battle.tower.shade.cronutils')
+    relocate('com.sun.el', 'com.envyful.battle.tower.shade.sun.el')
+    relocate('javax', 'com.envyful.battle.tower.shade.javax')
+    relocate('javax', 'com.envyful.battle.tower.shade.javax')
+    relocate('org.reactivestreams', 'com.envyful.battle.tower.shade.reactivestreams')
+    relocate('reactor', 'com.envyful.battle.tower.shade.reactor')
 
     exclude "**/module-info.class"
+    exclude "**/*.properties"
+    exclude "**/*.xml"
+    exclude "META-INF/versions/9/**"
+    exclude "META-INF/native-image/**"
+    exclude "META-INF/services/**"
 }
 
-reobf {
-    shadowJar {}
-}
-
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('shadowJar')
+shadowJar.finalizedBy('reobfJar')
 build.finalizedBy('versionedRelease')
