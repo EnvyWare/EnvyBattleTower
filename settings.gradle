@@ -16,3 +16,4 @@ plugins {
 
 rootProject.name = 'EnvyBattleTower'
 include 'forge16'
+include 'forge20'
