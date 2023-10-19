@@ -170,7 +170,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         private int startFloor = 0;
         private int endFloor = 1000;
         private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/")));
+                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/9c3b14d52e73f06d")));
 
         public TeamPossibilities() {
         }
