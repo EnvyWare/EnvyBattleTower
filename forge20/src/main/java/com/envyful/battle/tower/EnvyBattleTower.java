@@ -8,6 +8,7 @@ import com.envyful.api.database.impl.SimpleHikariDatabase;
 import com.envyful.api.database.leaderboard.Order;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.command.ForgeCommandFactory;
+import com.envyful.api.forge.command.parser.ForgeAnnotationCommandParser;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.ForgePlayerManager;
@@ -43,7 +44,7 @@ public class EnvyBattleTower {
     private static EnvyBattleTower instance;
 
     private ForgePlayerManager playerManager = new ForgePlayerManager();
-    private ForgeCommandFactory commandFactory = new ForgeCommandFactory(playerManager);
+    private ForgeCommandFactory commandFactory = new ForgeCommandFactory(ForgeAnnotationCommandParser::new, playerManager);
 
     private BattleTowerConfig config;
     private BattleTowerLocale locale;
@@ -86,7 +87,7 @@ public class EnvyBattleTower {
 
     @SubscribeEvent
     public void onCommandRegister(RegisterCommandsEvent event) {
-        this.playerManager.registerAttribute(this, BattleTowerAttribute.class);
+        this.playerManager.registerAttribute(BattleTowerAttribute.class);
         this.commandFactory.registerCompleter(new ForgePlayerCompleter());
 
         this.commandFactory.registerInjector(ForgeEnvyPlayer.class, (sender, args) -> {
@@ -99,7 +100,7 @@ public class EnvyBattleTower {
             return onlinePlayer;
         });
 
-        this.commandFactory.registerCommand(event.getDispatcher(), new BattleTowerCommand());
+        this.commandFactory.registerCommand(event.getDispatcher(), this.commandFactory.parseCommand(new BattleTowerCommand()));
     }
 
     public void reloadConfig() {

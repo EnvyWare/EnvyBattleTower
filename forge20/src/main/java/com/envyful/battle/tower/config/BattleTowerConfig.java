@@ -128,7 +128,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
             this.blacklistedCache = Lists.newArrayList();
 
             for (String s : this.blacklistedPokemon) {
-                this.blacklistedCache.add(PokemonSpecificationProxy.create(s));
+                this.blacklistedCache.add(PokemonSpecificationProxy.create(s).get());
             }
         }
 

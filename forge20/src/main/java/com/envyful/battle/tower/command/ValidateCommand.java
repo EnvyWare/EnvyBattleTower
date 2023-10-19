@@ -1,10 +1,9 @@
 package com.envyful.battle.tower.command;
 
-import com.envyful.api.command.annotate.Child;
 import com.envyful.api.command.annotate.Command;
-import com.envyful.api.command.annotate.Permissible;
 import com.envyful.api.command.annotate.executor.CommandProcessor;
 import com.envyful.api.command.annotate.executor.Sender;
+import com.envyful.api.command.annotate.permission.Permissible;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerConfig;
@@ -15,11 +14,9 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.List;
 
 @Command(
-        value = "validate",
-        description = "Validates the pokepastes"
+        value = "validate"
 )
 @Permissible("com.envyful.battle.tower.command.validate")
-@Child
 public class ValidateCommand {
 
     @CommandProcessor

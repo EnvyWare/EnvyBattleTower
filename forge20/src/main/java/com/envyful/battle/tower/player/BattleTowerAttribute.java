@@ -3,7 +3,7 @@ package com.envyful.battle.tower.player;
 import com.envyful.api.concurrency.UtilConcurrency;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.player.ForgePlayerManager;
-import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
+import com.envyful.api.forge.player.attribute.ManagedForgeAttribute;
 import com.envyful.api.forge.server.UtilForgeServer;
 import com.envyful.api.forge.world.UtilWorld;
 import com.envyful.api.math.UtilRandom;
@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower> {
+public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower> {
 
     private List<AttemptDetails> attempts = Lists.newArrayList();
     private AttemptDetails lastAttempt = null;
@@ -57,8 +57,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     private long attemptStart;
     private int currentFloor;
 
-    public BattleTowerAttribute(EnvyBattleTower manager, ForgePlayerManager playerManager) {
-        super(manager, playerManager);
+    public BattleTowerAttribute(ForgePlayerManager playerManager) {
+        super(EnvyBattleTower.getInstance(), playerManager);
     }
 
     public void setLastAttempt(AttemptDetails lastAttempt) {
@@ -112,7 +112,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         this.attemptStart = System.currentTimeMillis();
         this.currentFloor = 1;
 
-        PlayerPartyStorage party = StorageProxy.getParty(this.parent.getParent());
+        PlayerPartyStorage party = StorageProxy.getPartyNow(this.parent.getParent());
 
         for (Pokemon pokemon : party.getAll()) {
             if (this.manager.getConfig().isBlacklisted(pokemon)) {
@@ -177,7 +177,7 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
 
             this.parent.teleport(position.getPlayerPosition());
 
-            for (Pokemon pokemon : StorageProxy.getParty(this.parent.getParent()).getAll()) {
+            for (Pokemon pokemon : StorageProxy.getPartyNow(this.parent.getParent()).getAll()) {
                 if (pokemon != null) {
                     pokemon.setStatus(NoStatus.noStatus);
                     pokemon.heal();
