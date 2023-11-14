@@ -6,6 +6,7 @@ import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.database.impl.SimpleHikariDatabase;
 import com.envyful.api.database.leaderboard.Order;
+import com.envyful.api.database.sql.UtilSql;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.command.parser.ForgeAnnotationCommandParser;
@@ -53,6 +54,7 @@ public class EnvyBattleTower {
     private Leaderboard<BattleTowerEntry> leaderboard;
 
     public EnvyBattleTower() {
+        UtilSql.registerDriver();
         instance = this;
         UtilLogger.setLogger(LOGGER);
         GuiFactory.setPlatformFactory(new ForgeGuiFactory());
