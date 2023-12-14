@@ -10,17 +10,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public class ForgePlayerCompleter implements TabCompleter<String, ForgeEnvyPlayer> {
-
-    @Override
-    public Class<ForgeEnvyPlayer> getSenderClass() {
-        return ForgeEnvyPlayer.class;
-    }
-
-    @Override
-    public Class<String> getCompletedClass() {
-        return String.class;
-    }
+public class ForgePlayerCompleter implements TabCompleter<ForgeEnvyPlayer> {
 
     @Override
     public List<String> getCompletions(ForgeEnvyPlayer sender, String[] currentData, Annotation... completionData) {
