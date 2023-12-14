@@ -1,9 +1,11 @@
 package com.envyful.battle.tower.player;
 
 import com.envyful.api.concurrency.UtilConcurrency;
+import com.envyful.api.database.sql.SqlType;
+import com.envyful.api.database.sql.UtilSql;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.player.ForgePlayerManager;
-import com.envyful.api.forge.player.attribute.AbstractForgeAttribute;
+import com.envyful.api.forge.player.attribute.ManagedForgeAttribute;
 import com.envyful.api.forge.server.UtilForgeServer;
 import com.envyful.api.forge.world.UtilWorld;
 import com.envyful.api.math.UtilRandom;
@@ -47,7 +49,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower> {
+public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower> {
 
     private List<AttemptDetails> attempts = Lists.newArrayList();
     private AttemptDetails lastAttempt = null;
@@ -57,8 +59,8 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
     private long attemptStart;
     private int currentFloor;
 
-    public BattleTowerAttribute(EnvyBattleTower manager, ForgePlayerManager playerManager) {
-        super(manager, playerManager);
+    public BattleTowerAttribute(ForgePlayerManager playerManager) {
+        super(EnvyBattleTower.getInstance(), playerManager);
     }
 
     public void setLastAttempt(AttemptDetails lastAttempt) {
@@ -326,17 +328,15 @@ public class BattleTowerAttribute extends AbstractForgeAttribute<EnvyBattleTower
         this.heldItem.clear();
         long duration = System.currentTimeMillis() - this.attemptStart;
 
-        try (Connection connection = this.manager.getDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.ADD_USER_ATTEMPT)) {
-            preparedStatement.setString(1, this.parent.getUuid().toString());
-            preparedStatement.setString(2, this.parent.getName());
-            preparedStatement.setLong(3, this.attemptStart);
-            preparedStatement.setLong(4, duration);
-            preparedStatement.setInt(5, this.currentFloor);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        UtilSql.update(this.manager.getDatabase())
+                .query(BattleTowerQueries.ADD_USER_ATTEMPT)
+                .data(
+                        SqlType.text(this.parent.getUniqueId().toString()),
+                        SqlType.text(this.parent.getName()),
+                        SqlType.bigInt(this.attemptStart),
+                        SqlType.bigInt(duration),
+                        SqlType.integer(this.currentFloor)
+                ).executeAsync(UtilConcurrency.SCHEDULED_EXECUTOR_SERVICE);
 
         AttemptDetails attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
         this.attempts.add(attempt);

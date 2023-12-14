@@ -18,7 +18,7 @@ public class BattleTowerUI {
 
     public static void open(ForgeEnvyPlayer player) {
         BattleTowerGraphics.MainUI config = EnvyBattleTower.getInstance().getGraphics().getMainUI();
-        BattleTowerAttribute attribute = player.getAttribute(EnvyBattleTower.class);
+        BattleTowerAttribute attribute = player.getAttribute(BattleTowerAttribute.class);
         BattleTowerAttribute.AttemptDetails lastAttempt = attribute.getLastAttempt();
 
         Pane pane = GuiFactory.paneBuilder()

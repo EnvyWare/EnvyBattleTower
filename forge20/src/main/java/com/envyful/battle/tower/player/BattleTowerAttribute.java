@@ -1,6 +1,8 @@
 package com.envyful.battle.tower.player;
 
 import com.envyful.api.concurrency.UtilConcurrency;
+import com.envyful.api.database.sql.SqlType;
+import com.envyful.api.database.sql.UtilSql;
 import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.forge.player.attribute.ManagedForgeAttribute;
@@ -326,17 +328,15 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         this.heldItem.clear();
         long duration = System.currentTimeMillis() - this.attemptStart;
 
-        try (Connection connection = this.manager.getDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.ADD_USER_ATTEMPT)) {
-            preparedStatement.setString(1, this.parent.getUuid().toString());
-            preparedStatement.setString(2, this.parent.getName());
-            preparedStatement.setLong(3, this.attemptStart);
-            preparedStatement.setLong(4, duration);
-            preparedStatement.setInt(5, this.currentFloor);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        UtilSql.update(this.manager.getDatabase())
+                .query(BattleTowerQueries.ADD_USER_ATTEMPT)
+                .data(
+                        SqlType.text(this.parent.getUniqueId().toString()),
+                        SqlType.text(this.parent.getName()),
+                        SqlType.bigInt(this.attemptStart),
+                        SqlType.bigInt(duration),
+                        SqlType.integer(this.currentFloor)
+                ).executeAsync(UtilConcurrency.SCHEDULED_EXECUTOR_SERVICE);
 
         AttemptDetails attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
         this.attempts.add(attempt);
