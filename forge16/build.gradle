@@ -38,12 +38,10 @@ shadowJar {
     relocate('org.spongepowered.configurate', 'com.envyful.battle.tower.shade.configurate')
     relocate('org.yaml.snakeyaml', 'com.envyful.battle.tower.shade.snakeyaml')
     relocate('io.leangen.geantyref', 'com.envyful.battle.tower.shade.geantyref')
-    relocate('com.google.gson', 'com.envyful.battle.tower.shade.gson')
     relocate('com.zaxxer', 'com.envyful.battle.tower.shade.hikari')
     relocate('org.slf4j', 'com.envyful.battle.tower.shade.slf4j')
     relocate('com.envyful.api', 'com.envyful.battle.tower.shade.envy.api')
     relocate('org.bstats', 'com.envyful.battle.tower.shade.bstats')
-    relocate('com.google.common', 'com.envyful.battle.tower.shade.guava')
     relocate('org.apache.logging', 'com.envyful.battle.tower.shade.log4j')
     relocate('io.netty', 'com.envyful.battle.tower.shade.netty')
     relocate('io.lettuce', 'com.envyful.battle.tower.shade.lettuce')
@@ -53,6 +51,8 @@ shadowJar {
     relocate('org.reactivestreams', 'com.envyful.battle.tower.shade.reactivestreams')
     relocate('reactor', 'com.envyful.battle.tower.shade.reactor')
 
+    exclude "com/google/**"
+    exclude "javax/**"
     exclude "**/module-info.class"
     exclude "**/*.properties"
     exclude "**/*.xml"
