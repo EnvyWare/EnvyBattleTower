@@ -50,8 +50,6 @@ shadowJar {
     relocate('com.cronutils', 'com.envyful.battle.tower.shade.cronutils')
     relocate('com.cronutils', 'com.envyful.battle.tower.shade.cronutils')
     relocate('com.sun.el', 'com.envyful.battle.tower.shade.sun.el')
-    relocate('javax', 'com.envyful.battle.tower.shade.javax')
-    relocate('javax', 'com.envyful.battle.tower.shade.javax')
     relocate('org.reactivestreams', 'com.envyful.battle.tower.shade.reactivestreams')
     relocate('reactor', 'com.envyful.battle.tower.shade.reactor')
 
