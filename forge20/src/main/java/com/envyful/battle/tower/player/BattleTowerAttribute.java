@@ -282,6 +282,10 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         }, ServerLifecycleHooks.getCurrentServer());
     }
 
+    public boolean isAttempting() {
+        return this.attemptStart != -1;
+    }
+
     private CompletableFuture<Pair<BattleTowerConfig.PokePaste, List<Pokemon>>> getRandomLeaderTeam() {
         BattleTowerConfig.TeamPossibilities teamPossibilities = this.manager.getConfig().getTeamPossibilities(this.currentFloor);
 
