@@ -354,7 +354,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     }
 
     public boolean isAttempting() {
-        return this.attemptStart != -1;
+        return this.attemptStart != -1 && currentFloor > 0;
     }
 
     @Override
