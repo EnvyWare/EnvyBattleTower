@@ -9,20 +9,20 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public class PlayerLogoutListener {
 
     @SubscribeEvent
-    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event){
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         var player = EnvyBattleTower.getInstance().getPlayerManager().getPlayer((ServerPlayerEntity) event.getPlayer());
 
-        if (player == null){
+        if (player == null) {
             return;
         }
 
         var attribute = player.getAttribute(BattleTowerAttribute.class);
 
-        if (attribute == null){
+        if (attribute == null) {
             return;
         }
 
-        if (attribute.isAttempting()){
+        if (attribute.isAttempting()) {
             attribute.finishAttempt();
         }
     }
