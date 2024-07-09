@@ -20,6 +20,7 @@ import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.config.BattleTowerLocale;
 import com.envyful.battle.tower.config.BattleTowerQueries;
+import com.envyful.battle.tower.listener.PlayerLogoutListener;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import com.envyful.battle.tower.player.BattleTowerEntry;
 import net.minecraft.util.Util;
@@ -59,6 +60,7 @@ public class EnvyBattleTower {
         GuiFactory.setPlatformFactory(new ForgeGuiFactory());
 
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(PlayerLogoutListener.class);
     }
 
     @SubscribeEvent

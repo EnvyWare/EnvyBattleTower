@@ -353,6 +353,10 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         this.currentFloor = 0;
     }
 
+    public boolean isAttempting() {
+        return this.attemptStart != -1 && currentFloor > 0;
+    }
+
     @Override
     public void load() {
         try (Connection connection = this.manager.getDatabase().getConnection();
