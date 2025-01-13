@@ -5,8 +5,6 @@ import com.envyful.api.config.type.ConfigInterface;
 import com.envyful.api.config.type.ConfigItem;
 import com.envyful.api.config.type.ExtendedConfigItem;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
-import com.envyful.api.type.Pair;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -34,21 +32,14 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
     @ConfigSerializable
     public static class MainUI {
 
-        private ConfigInterface guiSettings = new ConfigInterface(
-                "EnvyBattleTower", 3, "BLOCK", ImmutableMap.of("one",
-                ConfigItem.builder()
-                        .type("minecraft:black_stained_glass_pane")
-                        .amount(1)
-                        .name(" ")
-                        .build()
-        ));
+        private ConfigInterface guiSettings = ConfigInterface.defaultInterface("EnvyBattleTower", 3);
 
         private ExtendedConfigItem leaderboardButton = ExtendedConfigItem.builder()
                 .type("minecraft:diamond")
                 .name("&aView leaderboard")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(2, 1))
+                .positions(2, 1)
                 .build();
 
         private ExtendedConfigItem startAttemptButton = ExtendedConfigItem.builder()
@@ -56,7 +47,7 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
                 .name("&aChallenge the tower!")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(4, 1))
+                .positions(4, 1)
                 .build();
 
         private ExtendedConfigItem cooldownButton = ExtendedConfigItem.builder()
@@ -65,7 +56,7 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
                 .lore("%remaining%")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(4, 1))
+                .positions(4, 1)
                 .build();
 
         public MainUI() {
@@ -91,21 +82,14 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
     @ConfigSerializable
     public static class LeaderboardUI {
 
-        private ConfigInterface guiSettings = new ConfigInterface(
-                "EnvyBattleTower", 6, "BLOCK", ImmutableMap.of("one",
-                ConfigItem.builder()
-                        .type("minecraft:black_stained_glass_pane")
-                        .amount(1)
-                        .name(" ")
-                        .build()
-        ));
+        private ConfigInterface guiSettings = ConfigInterface.defaultInterface("EnvyBattleTower", 6);
 
         private ExtendedConfigItem backButton = ExtendedConfigItem.builder()
                 .type("minecraft:bartrier")
                 .name("&cBack")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(4, 0))
+                .positions(4, 0)
                 .build();
 
         private ExtendedConfigItem nextPageButton = ExtendedConfigItem.builder()
@@ -113,7 +97,7 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
                 .name("&aNext page")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(8, 0))
+                .positions(8, 0)
                 .build();
 
         private ExtendedConfigItem previousPageButton = ExtendedConfigItem.builder()
@@ -121,7 +105,7 @@ public class BattleTowerGraphics extends AbstractYamlConfig {
                 .name("&aPrevious page")
                 .amount(1)
                 .enable()
-                .positions(Pair.of(0, 0))
+                .positions(0, 0)
                 .build();
 
         private List<Integer> positions = Lists.newArrayList(

@@ -2,11 +2,12 @@ package com.envyful.battle.tower.config;
 
 import com.envyful.api.config.ConfigLocation;
 import com.envyful.api.config.data.ConfigPath;
+import com.envyful.api.config.database.DatabaseDetailsConfig;
 import com.envyful.api.config.type.ConfigRandomWeightedSet;
-import com.envyful.api.config.type.SQLDatabaseDetails;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
 import com.envyful.api.reforged.pixelmon.PokePasteReader;
+import com.envyful.api.sqlite.config.SQLiteDatabaseDetailsConfig;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -23,23 +24,34 @@ import java.util.concurrent.TimeUnit;
 @ConfigPath("config/EnvyBattleTower/config.yml")
 public class BattleTowerConfig extends AbstractYamlConfig {
 
-    private SQLDatabaseDetails databaseDetails = new SQLDatabaseDetails(
-            "EnvyBattleTower", "0.0.0.0", 3306, "admin", "password", "database"
-    );
+    private DatabaseDetailsConfig databaseDetails = new SQLiteDatabaseDetailsConfig("config/EnvyBattleTower/data.db");
 
     private Map<String, PossiblePosition> positions = ImmutableMap.of(
             "example", new PossiblePosition(
-                    new ConfigLocation("world", 1, 1, 1, 1, 1),
-                    new ConfigLocation("world", 1, 1, 1, 1, 1)
+                    ConfigLocation.builder()
+                            .worldName("world")
+                            .posX(0)
+                            .posY(0)
+                            .posZ(0)
+                            .build(),
+                    ConfigLocation.builder()
+                            .worldName("world")
+                            .posX(0)
+                            .posY(0)
+                            .posZ(0)
+                            .build()
     ));
 
     private Map<String, TeamPossibilities> teamOptions = ImmutableMap.of(
             "one", new TeamPossibilities()
     );
 
-    private ConfigLocation returnPosition = new ConfigLocation(
-            "world", 0, 0, 0, 0, 0
-    );
+    private ConfigLocation returnPosition = ConfigLocation.builder()
+            .worldName("world")
+            .posX(0)
+            .posY(0)
+            .posZ(0)
+            .build();
 
     private int maxFloor = -1;
     private boolean allowSpectating = false;
@@ -61,7 +73,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
         super();
     }
 
-    public SQLDatabaseDetails getDatabaseDetails() {
+    public DatabaseDetailsConfig getDatabaseDetails() {
         return this.databaseDetails;
     }
 

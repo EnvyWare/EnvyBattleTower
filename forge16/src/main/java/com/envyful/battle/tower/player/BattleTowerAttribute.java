@@ -2,16 +2,15 @@ package com.envyful.battle.tower.player;
 
 import com.envyful.api.concurrency.UtilConcurrency;
 import com.envyful.api.database.sql.SqlType;
-import com.envyful.api.database.sql.UtilSql;
-import com.envyful.api.forge.chat.UtilChatColour;
-import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.forge.player.attribute.ManagedForgeAttribute;
 import com.envyful.api.forge.server.UtilForgeServer;
 import com.envyful.api.forge.world.UtilWorld;
 import com.envyful.api.math.UtilRandom;
+import com.envyful.api.platform.PlatformProxy;
 import com.envyful.api.reforged.battle.BattleBuilder;
 import com.envyful.api.reforged.battle.BattleParticipantBuilder;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
+import com.envyful.api.text.Placeholder;
 import com.envyful.api.type.Pair;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.config.BattleTowerConfig;
@@ -23,7 +22,6 @@ import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
-import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.api.storage.TrainerPartyStorage;
 import com.pixelmonmod.pixelmon.battles.api.rules.BattleRuleRegistry;
@@ -37,7 +35,6 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.enums.EnumMegaItemsUnlocked;
 import com.pixelmonmod.pixelmon.enums.EnumOldGenMode;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.sql.Connection;
@@ -59,8 +56,8 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     private long attemptStart;
     private int currentFloor;
 
-    public BattleTowerAttribute(ForgePlayerManager playerManager) {
-        super(EnvyBattleTower.getInstance(), playerManager);
+    public BattleTowerAttribute(UUID uuid) {
+        super(uuid, EnvyBattleTower.getInstance());
     }
 
     public void setLastAttempt(AttemptDetails lastAttempt) {
@@ -114,18 +111,18 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         this.attemptStart = System.currentTimeMillis();
         this.currentFloor = 1;
 
-        PlayerPartyStorage party = StorageProxy.getParty(this.parent.getParent());
+        var party = StorageProxy.getParty(this.parent.getParent());
 
-        for (Pokemon pokemon : party.getAll()) {
-            if (this.manager.getConfig().isBlacklisted(pokemon)) {
-                for (String s : this.manager.getLocale().getBlacklistedPokemonError()) {
-                    this.parent.message(UtilChatColour.colour(s.replace("%pokemon%", pokemon.getDisplayName())));
-                }
+        for (var pokemon : party.getAll()) {
+            if (EnvyBattleTower.getConfig().isBlacklisted(pokemon)) {
+                this.parent.message(EnvyBattleTower.getLocale().getBlacklistedPokemonError(),
+                        Placeholder.simple("pokemon", pokemon.getDisplayName())
+                );
                 return;
             }
         }
 
-        BattleTowerConfig.PossiblePosition randomElement = UtilRandom.getRandomElement(this.manager.getConfig().getPositions());
+        var randomElement = UtilRandom.getRandomElement(EnvyBattleTower.getConfig().getPositions());
 
         if (randomElement == null) {
             EnvyBattleTower.getLogger().error("Invalid trainer positions found in battle tower config");
@@ -137,7 +134,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     }
 
     public void beginBattle(BattleTowerConfig.PossiblePosition position) {
-        World world = UtilWorld.findWorld(position.getTrainerPosition().getWorldName());
+        var world = UtilWorld.findWorld(position.getTrainerPosition().getWorldName());
 
         if (world == null) {
             EnvyBattleTower.getLogger().error("Invalid world name found in config: " + position.getTrainerPosition().getWorldName());
@@ -145,7 +142,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
             return;
         }
 
-        NPCTrainer trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
+        var trainer = new NPCTrainer(UtilWorld.findWorld(position.getTrainerPosition().getWorldName()));
 
         getRandomLeaderTeam().whenCompleteAsync((randomLeaderTeam, throwable) -> {
             if (randomLeaderTeam == null) {
@@ -179,7 +176,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
 
             this.parent.teleport(position.getPlayerPosition());
 
-            for (Pokemon pokemon : StorageProxy.getParty(this.parent.getParent()).getAll()) {
+            for (var pokemon : StorageProxy.getParty(this.parent.getParent()).getAll()) {
                 if (pokemon != null) {
                     pokemon.setStatus(NoStatus.noStatus);
                     pokemon.heal();
@@ -239,41 +236,37 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
                         }
 
                         if (battleResults != BattleResults.VICTORY) {
-                            for (String command : randomLeaderTeam.getX().getPlayerLossCommands()) {
-                                UtilForgeServer.executeCommand(command
-                                        .replace("%player%", this.parent.getName())
-                                        .replace("%floor%", String.valueOf(this.currentFloor))
-                                );
-                            }
-
-                            this.finishAttempt();
-                            return;
-                        }
-
-                        if (!this.manager.getConfig().canContinue(this.currentFloor + 1)) {
-                            this.finishAttempt();
-                            for (String command : this.manager.getConfig().getAttemptFinishWinCommands()) {
-                                UtilForgeServer.executeCommand(command
-                                        .replace("%player%", this.parent.getName())
-                                        .replace("%floor%", String.valueOf(this.currentFloor))
-                                );
-                            }
-
-                            for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
-                                UtilForgeServer.executeCommand(command
-                                        .replace("%player%", this.parent.getName())
-                                        .replace("%floor%", String.valueOf(this.currentFloor))
-                                );
-                            }
-                            return;
-                        }
-
-                        for (String command : randomLeaderTeam.getX().getPlayerWinCommands()) {
-                            UtilForgeServer.executeCommand(command
-                                    .replace("%player%", this.parent.getName())
-                                    .replace("%floor%", String.valueOf(this.currentFloor))
+                            PlatformProxy.executeConsoleCommands(randomLeaderTeam.getX().getPlayerLossCommands(),
+                                    Placeholder.simple("%player%", this.parent.getName()),
+                                    Placeholder.simple("%floor%", this.currentFloor)
                             );
+                            PlatformProxy.executeConsoleCommands(EnvyBattleTower.getConfig().getAttemptFinishLossCommands(),
+                                    Placeholder.simple("%player%", this.parent.getName()),
+                                    Placeholder.simple("%floor%", this.currentFloor)
+                            );
+
+                            this.finishAttempt();
+                            return;
                         }
+
+                        if (!EnvyBattleTower.getConfig().canContinue(this.currentFloor + 1)) {
+                            this.finishAttempt();
+                            PlatformProxy.executeConsoleCommands(EnvyBattleTower.getConfig().getAttemptFinishWinCommands(),
+                                    Placeholder.simple("%player%", this.parent.getName()),
+                                    Placeholder.simple("%floor%", this.currentFloor)
+                            );
+
+                            PlatformProxy.executeConsoleCommands(randomLeaderTeam.getX().getPlayerWinCommands(),
+                                    Placeholder.simple("%player%", this.parent.getName()),
+                                    Placeholder.simple("%floor%", this.currentFloor)
+                            );
+                            return;
+                        }
+
+                        PlatformProxy.executeConsoleCommands(EnvyBattleTower.getConfig().getAttemptFinishWinCommands(),
+                                Placeholder.simple("%player%", this.parent.getName()),
+                                Placeholder.simple("%floor%", this.currentFloor)
+                        );
 
                         this.currentFloor++;
                         this.beginBattle(position);
@@ -283,7 +276,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     }
 
     private CompletableFuture<Pair<BattleTowerConfig.PokePaste, List<Pokemon>>> getRandomLeaderTeam() {
-        BattleTowerConfig.TeamPossibilities teamPossibilities = this.manager.getConfig().getTeamPossibilities(this.currentFloor);
+        BattleTowerConfig.TeamPossibilities teamPossibilities = EnvyBattleTower.getConfig().getTeamPossibilities(this.currentFloor);
 
         if (teamPossibilities == null || teamPossibilities.getTeams() == null || teamPossibilities.getTeams().getWeightedSet() == null ||
             teamPossibilities.getTeams().getWeightedSet().getRandom() == null) {
@@ -296,7 +289,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
 
         return UtilConcurrency.supplyAsync(random::getTeam).thenApply(pokePasteTeam -> {
             if (pokePasteTeam == null || pokePasteTeam.isEmpty()) {
-                EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random.toString());
+                EnvyBattleTower.getLogger().error("Invalid PokePaste found: " + random);
                 return  null;
             }
 
@@ -313,7 +306,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     private BattleRules createRules() {
         BattleRules battleRules = new BattleRules().set(BattleRuleRegistry.BATTLE_TYPE, BattleType.SINGLE);
 
-        for (ConfigBattleRule rule : this.manager.getConfig().getRules()) {
+        for (ConfigBattleRule rule : EnvyBattleTower.getConfig().getRules()) {
             battleRules.set(BattleRuleRegistry.getProperty(rule.getBattleRuleType()), rule.getBattleRuleValue());
         }
 
@@ -328,17 +321,18 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         this.heldItem.clear();
         long duration = System.currentTimeMillis() - this.attemptStart;
 
-        UtilSql.update(this.manager.getDatabase())
-                .query(BattleTowerQueries.ADD_USER_ATTEMPT)
+        EnvyBattleTower.getDatabase()
+                .update(BattleTowerQueries.ADD_USER_ATTEMPT)
                 .data(
                         SqlType.text(this.parent.getUniqueId().toString()),
                         SqlType.text(this.parent.getName()),
                         SqlType.bigInt(this.attemptStart),
                         SqlType.bigInt(duration),
                         SqlType.integer(this.currentFloor)
-                ).executeAsync(UtilConcurrency.SCHEDULED_EXECUTOR_SERVICE);
+                )
+                .executeAsync();
 
-        AttemptDetails attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
+        var attempt = new AttemptDetails(this.attemptStart, duration, this.currentFloor);
         this.attempts.add(attempt);
         this.lastAttempt = attempt;
 
@@ -361,7 +355,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
     public void load() {
         try (Connection connection = this.manager.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.LOAD_USER_ATTEMPTS)) {
-            preparedStatement.setString(1, this.parent.getUuid().toString());
+            preparedStatement.setString(1, this.id.toString());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
@@ -384,7 +378,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
         try (Connection connection = this.manager.getDatabase().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.UPDATE_USERNAME)) {
             preparedStatement.setString(1, this.parent.getName());
-            preparedStatement.setString(2, this.parent.getUuid().toString());
+            preparedStatement.setString(2, this.id.toString());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

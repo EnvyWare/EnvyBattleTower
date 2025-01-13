@@ -16,7 +16,7 @@ public class PlayerLogoutListener {
             return;
         }
 
-        var attribute = player.getAttribute(BattleTowerAttribute.class);
+        var attribute = player.getAttributeNow(BattleTowerAttribute.class);
 
         if (attribute == null) {
             return;

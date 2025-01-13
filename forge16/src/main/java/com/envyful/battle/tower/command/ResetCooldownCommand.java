@@ -22,7 +22,7 @@ public class ResetCooldownCommand {
     @CommandProcessor
     public void onCommand(@Sender ICommandSource sender,
                           @Completable(ForgePlayerCompleter.class) @Argument ForgeEnvyPlayer target) {
-        BattleTowerAttribute attribute = target.getAttribute(BattleTowerAttribute.class);
+        var attribute = target.getAttributeNow(BattleTowerAttribute.class);
 
         if (attribute == null) {
             sender.sendMessage(new StringTextComponent("Failed to reset cooldown for " + target.getName() + " please try again in a minute!"), Util.NIL_UUID);

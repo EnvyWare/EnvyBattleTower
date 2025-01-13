@@ -28,6 +28,6 @@ public class BattleTowerCommand {
             return;
         }
 
-        BattleTowerUI.open(EnvyBattleTower.getInstance().getPlayerManager().getPlayer(sender));
+        BattleTowerUI.open(EnvyBattleTower.getPlayerManager().getPlayer(sender));
     }
 }

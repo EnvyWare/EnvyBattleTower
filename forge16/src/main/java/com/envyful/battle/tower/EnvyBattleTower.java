@@ -1,12 +1,9 @@
 package com.envyful.battle.tower;
 
-import com.envyful.api.concurrency.UtilConcurrency;
 import com.envyful.api.concurrency.UtilLogger;
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
-import com.envyful.api.database.impl.SimpleHikariDatabase;
 import com.envyful.api.database.leaderboard.Order;
-import com.envyful.api.forge.chat.UtilChatColour;
 import com.envyful.api.forge.command.ForgeCommandFactory;
 import com.envyful.api.forge.command.parser.ForgeAnnotationCommandParser;
 import com.envyful.api.forge.gui.factory.ForgeGuiFactory;
@@ -14,6 +11,7 @@ import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.leaderboard.Leaderboard;
+import com.envyful.api.platform.PlatformProxy;
 import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.command.tab.ForgePlayerCompleter;
 import com.envyful.battle.tower.config.BattleTowerConfig;
@@ -23,7 +21,6 @@ import com.envyful.battle.tower.config.BattleTowerQueries;
 import com.envyful.battle.tower.listener.PlayerLogoutListener;
 import com.envyful.battle.tower.player.BattleTowerAttribute;
 import com.envyful.battle.tower.player.BattleTowerEntry;
-import net.minecraft.util.Util;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,9 +30,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Mod("envybattletower")
@@ -66,7 +61,11 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
         this.reloadConfig();
-        this.database = new SimpleHikariDatabase(this.config.getDatabaseDetails());
+
+        this.database = this.config.getDatabaseDetails().createDatabase();
+
+
+
         this.leaderboard = Leaderboard.builder(BattleTowerEntry.class)
                 .database(this.database)
                 .cacheDuration(TimeUnit.MINUTES.toMillis(10))
@@ -76,28 +75,22 @@ public class EnvyBattleTower {
                 .column("floor_reached")
                 .pageSize(10)
                 .build();
-        UtilConcurrency.runAsync(this::createTable);
-    }
 
-    private void createTable() {
-        try (Connection connection = this.getDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(BattleTowerQueries.CREATE_TABLE)) {
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        getDatabase()
+                .update(BattleTowerQueries.CREATE_TABLE)
+                .executeAsync();
     }
 
     @SubscribeEvent
     public void onCommandRegister(RegisterCommandsEvent event) {
-        this.playerManager.registerAttribute(BattleTowerAttribute.class);
+        this.playerManager.registerAttribute(BattleTowerAttribute.class, BattleTowerAttribute::new);
         this.commandFactory.registerCompleter(new ForgePlayerCompleter());
 
         this.commandFactory.registerInjector(ForgeEnvyPlayer.class, (sender, args) -> {
             ForgeEnvyPlayer onlinePlayer = this.playerManager.getOnlinePlayer(args[0]);
 
             if (onlinePlayer == null) {
-                sender.sendMessage(UtilChatColour.colour("&c&l(!) &cCannot find that player"), Util.NIL_UUID);
+                PlatformProxy.sendMessage(sender, List.of("&c&l(!) &cCannot find that player"));
             }
 
             return onlinePlayer;
@@ -112,32 +105,32 @@ public class EnvyBattleTower {
             this.locale = YamlConfigFactory.getInstance(BattleTowerLocale.class);
             this.graphics = YamlConfigFactory.getInstance(BattleTowerGraphics.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Failed to load BattleTower configs", e);
         }
     }
 
-    public BattleTowerConfig getConfig() {
-        return this.config;
+    public static BattleTowerConfig getConfig() {
+        return instance.config;
     }
 
-    public BattleTowerLocale getLocale() {
-        return this.locale;
+    public static BattleTowerLocale getLocale() {
+        return instance.locale;
     }
 
-    public BattleTowerGraphics getGraphics() {
-        return this.graphics;
+    public static BattleTowerGraphics getGraphics() {
+        return instance.graphics;
     }
 
-    public Database getDatabase() {
-        return this.database;
+    public static Database getDatabase() {
+        return instance.database;
     }
 
     public Leaderboard<BattleTowerEntry> getLeaderboard() {
         return this.leaderboard;
     }
 
-    public ForgePlayerManager getPlayerManager() {
-        return this.playerManager;
+    public static ForgePlayerManager getPlayerManager() {
+        return instance.playerManager;
     }
 
     public static EnvyBattleTower getInstance() {
