@@ -59,6 +59,8 @@ public class EnvyBattleTower {
         PlatformProxy.setHandler(ForgePlatformHandler.getInstance());
         PlatformProxy.setTextFormatter(ITextComponentTextFormatter.getInstance());
 
+        SQLiteDatabaseDetailsConfig.register();
+
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(PlayerLogoutListener.class);
 
