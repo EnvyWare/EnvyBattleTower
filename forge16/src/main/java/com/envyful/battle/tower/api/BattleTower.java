@@ -12,7 +12,6 @@ import com.envyful.api.type.Pair;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttributeAdapter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.pixelmonmod.api.pokemon.PokemonSpecification;
 import com.pixelmonmod.api.pokemon.PokemonSpecificationProxy;
@@ -216,25 +215,8 @@ public class BattleTower extends AbstractYamlConfig implements SimplePlaceholder
     public static class Builder {
 
         private String id;
-        private Map<String, FloorPosition> positions = ImmutableMap.of(
-                "example", new FloorPosition(
-                        ConfigLocation.builder()
-                                .worldName("world")
-                                .posX(0)
-                                .posY(0)
-                                .posZ(0)
-                                .build(),
-                        ConfigLocation.builder()
-                                .worldName("world")
-                                .posX(0)
-                                .posY(0)
-                                .posZ(0)
-                                .build()
-                ));
-
-        private Map<String, TeamPossibilities> teamOptions = ImmutableMap.of(
-                "one", new TeamPossibilities()
-        );
+        private Map<String, FloorPosition> positions = new HashMap<>();
+        private Map<String, TeamPossibilities> teamOptions = new HashMap<>();
 
         private ConfigLocation returnPosition = ConfigLocation.builder()
                 .worldName("world")

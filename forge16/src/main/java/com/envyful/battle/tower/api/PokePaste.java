@@ -5,9 +5,11 @@ import com.envyful.api.reforged.pixelmon.PokePasteReader;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.google.common.collect.Lists;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
 
+@ConfigSerializable
 public class PokePaste {
 
     private String paste;
