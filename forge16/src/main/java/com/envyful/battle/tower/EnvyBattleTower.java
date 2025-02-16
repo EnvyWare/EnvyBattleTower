@@ -12,6 +12,7 @@ import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.platform.PlatformProxy;
+import com.envyful.battle.tower.api.BattleTower;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
 import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.command.completer.BattleTowerTabCompleter;
@@ -71,6 +72,16 @@ public class EnvyBattleTower {
         this.playerManager.registerAttribute(BattleTowerAttribute.class, BattleTowerAttribute::new);
 
         this.commandFactory.registerCompleter(new BattleTowerTabCompleter());
+
+        this.commandFactory.registerInjector(BattleTower.class, (sender, args) -> {
+            var tower = this.config.getTower(args[0]);
+
+            if (tower == null) {
+                PlatformProxy.sendMessage(sender, List.of("&c&l(!) &cCannot find that tower"));
+            }
+
+            return tower;
+        });
 
         this.commandFactory.registerInjector(ForgeEnvyPlayer.class, (sender, args) -> {
             ForgeEnvyPlayer onlinePlayer = this.playerManager.getOnlinePlayer(args[0]);
