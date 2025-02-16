@@ -37,7 +37,7 @@ public class SQLBattleTowerAttributeAdapter implements BattleTowerAttributeAdapt
     @Override
     public CompletableFuture<Void> save(BattleTowerAttribute attribute) {
         return EnvyBattleTower.getDatabase()
-                .query(UPDATE_USERNAME)
+                .update(UPDATE_USERNAME)
                 .data(
                         SqlType.text(attribute.username),
                         SqlType.text(attribute.getUniqueId().toString())
