@@ -3,267 +3,122 @@ package com.envyful.battle.tower.config;
 import com.envyful.api.config.ConfigLocation;
 import com.envyful.api.config.data.ConfigPath;
 import com.envyful.api.config.database.DatabaseDetailsConfig;
-import com.envyful.api.config.type.ConfigRandomWeightedSet;
+import com.envyful.api.config.type.ExtendedConfigItem;
 import com.envyful.api.config.yaml.AbstractYamlConfig;
+import com.envyful.api.config.yaml.DefaultConfig;
+import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
-import com.envyful.api.reforged.pixelmon.PokePasteReader;
 import com.envyful.api.sqlite.config.SQLiteDatabaseDetailsConfig;
-import com.envyful.battle.tower.EnvyBattleTower;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.pixelmonmod.api.pokemon.PokemonSpecification;
-import com.pixelmonmod.api.pokemon.PokemonSpecificationProxy;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.envyful.battle.tower.api.BattleTower;
+import com.envyful.battle.tower.api.FloorPosition;
+import com.envyful.battle.tower.api.TeamPossibilities;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @ConfigSerializable
 @ConfigPath("config/EnvyBattleTower/config.yml")
 public class BattleTowerConfig extends AbstractYamlConfig {
 
+    @Comment("The storage type and details for all battle tower player data. Only change this if you know what you're doing. For more information visit https://www.envyware.co.uk/docs/general-help/general-config/config-databases")
     private DatabaseDetailsConfig databaseDetails = new SQLiteDatabaseDetailsConfig("config/EnvyBattleTower/data.db");
 
-    private Map<String, PossiblePosition> positions = ImmutableMap.of(
-            "example", new PossiblePosition(
-                    ConfigLocation.builder()
-                            .worldName("world")
-                            .posX(0)
-                            .posY(0)
-                            .posZ(0)
-                            .build(),
-                    ConfigLocation.builder()
-                            .worldName("world")
-                            .posX(0)
-                            .posY(0)
-                            .posZ(0)
-                            .build()
-    ));
+    private transient List<BattleTower> battleTowers = new ArrayList<>();
 
-    private Map<String, TeamPossibilities> teamOptions = ImmutableMap.of(
-            "one", new TeamPossibilities()
-    );
-
-    private ConfigLocation returnPosition = ConfigLocation.builder()
-            .worldName("world")
-            .posX(0)
-            .posY(0)
-            .posZ(0)
-            .build();
-
-    private int maxFloor = -1;
-    private boolean allowSpectating = false;
-    private long cooldownSeconds = TimeUnit.DAYS.toSeconds(1);
-    private boolean allowExpGain = false;
-    private Map<String, ConfigBattleRule> battleRules = ImmutableMap.of(
-            "one", new ConfigBattleRule("example", "value")
-    );
-
-    private List<String> attemptFinishLossCommands = Lists.newArrayList("broadcast %player% %floor%");
-    private List<String> attemptFinishWinCommands = Lists.newArrayList("broadcast %player% %floor%");
-
-    private List<String> blacklistedPokemon = Lists.newArrayList(
-            "bidoof"
-    );
-    private transient List<PokemonSpecification> blacklistedCache = null;
-
-    public BattleTowerConfig() {
+    public BattleTowerConfig() throws IOException {
         super();
+
+        var battleTowers = YamlConfigFactory.getInstances(BattleTower.class,
+                "config/EnvyBattleTower/towers/",
+                DefaultConfig.onlyNew("example.yml", BattleTower.builder()
+                        .id("example")
+                        .allowSpectating(false)
+                        .allowExpGain(false)
+                        .cooldownSeconds(60)
+                        .blacklistedPokemon("shiny")
+                        .returnPosition(ConfigLocation.builder().worldName("world").posX(0).posY(0).posZ(0).build())
+                        .maxFloor(200)
+                        .position(new FloorPosition(
+                                ConfigLocation.builder().worldName("world").posX(1).posY(0).posZ(0).build(),
+                                ConfigLocation.builder().worldName("world").posX(2).posY(0).posZ(0).build()
+                        ))
+                        .position(new FloorPosition(
+                                ConfigLocation.builder().worldName("world").posX(2).posY(0).posZ(0).build(),
+                                ConfigLocation.builder().worldName("world").posX(3).posY(0).posZ(0).build()
+                        ))
+                        .teamOption(new TeamPossibilities())
+                        .battleRule("LEVEL_CAP", new ConfigBattleRule("LEVEL_CAP", "50"))
+                        .attemptFinishWinCommand("give %player% diamond 1")
+                        .attemptFinishLossCommand("minecraft:tell %player% You lost! Better luck next time")
+                        .displayItem(ExtendedConfigItem.builder()
+                                .type("pixelmon:ui_element")
+                                .amount(1)
+                                .name("&aExample Battle Tower")
+                                .lore(
+                                        "&7This is an example battle tower",
+                                        "&7It has a cooldown of 60 seconds",
+                                        "&7You can't use shiny Pokemon",
+                                        "&7You can't gain exp",
+                                        "&7You can't spectate",
+                                        " ",
+                                        "&aClick to enter!",
+                                        " ",
+                                        "&aLeaderboard:",
+                                        "&71. %leaderboard_1_player% - %leaderboard_1_floor% floors (%leaderboard_1_time%) on %leaderboard_1_date%",
+                                        "&72. %leaderboard_2_player% - %leaderboard_2_floor% floors (%leaderboard_2_time%) on %leaderboard_2_date%",
+                                        "&73. %leaderboard_3_player% - %leaderboard_3_floor% floors (%leaderboard_3_time%) on %leaderboard_3_date%",
+                                        "&74. %leaderboard_4_player% - %leaderboard_4_floor% floors (%leaderboard_4_time%) on %leaderboard_4_date%",
+                                        "&75. %leaderboard_5_player% - %leaderboard_5_floor% floors (%leaderboard_5_time%) on %leaderboard_5_date%"
+                                )
+                                .nbt("UIImage", "pixelmon:textures/gui/uielements/tile_0049.png")
+                                .build())
+                        .cooldownItem(ExtendedConfigItem.builder()
+                                .type("pixelmon:ui_element")
+                                .amount(1)
+                                .name("&aExample Battle Tower")
+                                .lore(
+                                        "&c&lYou are on cooldown",
+                                        "&c%cooldown%",
+                                        " ",
+                                        "&aLeaderboard:",
+                                        "&71. %leaderboard_1_player% - %leaderboard_1_floor% floors (%leaderboard_1_time%) on %leaderboard_1_date%",
+                                        "&72. %leaderboard_2_player% - %leaderboard_2_floor% floors (%leaderboard_2_time%) on %leaderboard_2_date%",
+                                        "&73. %leaderboard_3_player% - %leaderboard_3_floor% floors (%leaderboard_3_time%) on %leaderboard_3_date%",
+                                        "&74. %leaderboard_4_player% - %leaderboard_4_floor% floors (%leaderboard_4_time%) on %leaderboard_4_date%",
+                                        "&75. %leaderboard_5_player% - %leaderboard_5_floor% floors (%leaderboard_5_time%) on %leaderboard_5_date%"
+                                )
+                                .nbt("UIImage", "pixelmon:textures/gui/uielements/tile_0049.png")
+                                .build())
+                        .build()));
+
+        for (var battleTower : battleTowers) {
+            if (!battleTower.enabled()) {
+                continue;
+            }
+
+            this.battleTowers.add(battleTower);
+            battleTower.init();
+        }
     }
 
     public DatabaseDetailsConfig getDatabaseDetails() {
         return this.databaseDetails;
     }
 
-    public List<PossiblePosition> getPositions() {
-        return Lists.newArrayList(this.positions.values());
+    public List<BattleTower> getBattleTowers() {
+        return this.battleTowers;
     }
 
-    public boolean canContinue(int nextFloor) {
-        if (this.maxFloor == -1) {
-            return true;
-        }
-
-        return nextFloor <= this.maxFloor;
-    }
-
-    public List<TeamPossibilities> getTeamPossibilities() {
-        return Lists.newArrayList(this.teamOptions.values());
-    }
-
-    public long getCooldownSeconds() {
-        return this.cooldownSeconds;
-    }
-
-    public boolean isAllowExpGain() {
-        return this.allowExpGain;
-    }
-
-    public List<ConfigBattleRule> getRules() {
-        return Lists.newArrayList(this.battleRules.values());
-    }
-
-    public TeamPossibilities getTeamPossibilities(int floor) {
-        for (TeamPossibilities teamPossibility : this.getTeamPossibilities()) {
-            if (teamPossibility.getEndFloor() > floor && teamPossibility.getStartFloor() < floor) {
-                return teamPossibility;
+    public BattleTower getTower(String id) {
+        for (BattleTower battleTower : this.battleTowers) {
+            if (battleTower.id().equalsIgnoreCase(id)) {
+                return battleTower;
             }
         }
 
         return null;
-    }
-
-    public List<String> getAttemptFinishLossCommands() {
-        return this.attemptFinishLossCommands;
-    }
-
-    public List<String> getAttemptFinishWinCommands() {
-        return this.attemptFinishWinCommands;
-    }
-
-    public ConfigLocation getReturnPosition() {
-        return this.returnPosition;
-    }
-
-    public boolean isAllowSpectating() {
-        return this.allowSpectating;
-    }
-
-    public boolean isBlacklisted(Pokemon pokemon) {
-        if (pokemon == null) {
-            return false;
-        }
-
-        if (this.blacklistedCache == null) {
-            this.blacklistedCache = Lists.newArrayList();
-
-            for (String s : this.blacklistedPokemon) {
-                this.blacklistedCache.add(PokemonSpecificationProxy.create(s));
-            }
-        }
-
-        for (PokemonSpecification pokemonSpecification : this.blacklistedCache) {
-            if (pokemonSpecification.matches(pokemon)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @ConfigSerializable
-    public static class PossiblePosition {
-
-        private ConfigLocation playerPosition;
-        private ConfigLocation trainerPosition;
-
-        public PossiblePosition(ConfigLocation playerPosition, ConfigLocation trainerPosition) {
-            this.playerPosition = playerPosition;
-            this.trainerPosition = trainerPosition;
-        }
-
-        public PossiblePosition() {
-        }
-
-        public ConfigLocation getPlayerPosition() {
-            return this.playerPosition;
-        }
-
-        public ConfigLocation getTrainerPosition() {
-            return this.trainerPosition;
-        }
-    }
-
-    @ConfigSerializable
-    public static class TeamPossibilities {
-
-        private int startFloor = 0;
-        private int endFloor = 1000;
-        private ConfigRandomWeightedSet<PokePaste> teams = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new PokePaste("https://pokepast.es/")));
-
-        public TeamPossibilities() {
-        }
-
-        public int getStartFloor() {
-            return this.startFloor;
-        }
-
-        public int getEndFloor() {
-            return this.endFloor;
-        }
-
-        public ConfigRandomWeightedSet<PokePaste> getTeams() {
-            return this.teams;
-        }
-    }
-
-    @ConfigSerializable
-    public static class PokePaste {
-
-        private String paste;
-        private transient List<Pokemon> team;
-        private ConfigRandomWeightedSet<Commands> playerWinCommands = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new Commands(Lists.newArrayList("broadcast %player%")))
-        );
-        private ConfigRandomWeightedSet<Commands> playerLossCommands = new ConfigRandomWeightedSet<>(
-                new ConfigRandomWeightedSet.WeightedObject<>(10, new Commands(Lists.newArrayList("broadcast %player%")))
-        );
-
-        public PokePaste(String paste) {
-            this.paste = paste;
-        }
-
-        public PokePaste() {
-        }
-
-        public String getPaste() {
-            return this.paste;
-        }
-
-        public List<Pokemon> getTeam() {
-            if (this.team == null) {
-                try {
-                    this.team = PokePasteReader.from(this.paste).build();
-                } catch (Exception e) {
-                    EnvyBattleTower.getLogger().error("Error during PokePaste load attempt for URL `{}`", this.paste);
-                    EnvyBattleTower.getLogger().catching(e);
-                }
-            }
-
-            return this.team;
-        }
-
-        public List<String> getPlayerWinCommands() {
-            return this.playerWinCommands.getRandom().getCommands();
-        }
-
-        public List<String> getPlayerLossCommands() {
-            return this.playerLossCommands.getRandom().getCommands();
-        }
-
-        @Override
-        public String toString() {
-            return this.paste;
-        }
-    }
-
-    @ConfigSerializable
-    public static class Commands {
-
-        private List<String> commands;
-
-        public Commands(List<String> commands) {
-            this.commands = commands;
-        }
-
-        public Commands() {
-        }
-
-        public List<String> getCommands() {
-            return this.commands;
-        }
     }
 }
