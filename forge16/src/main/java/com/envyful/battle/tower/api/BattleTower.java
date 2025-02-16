@@ -21,6 +21,7 @@ import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,21 +33,37 @@ import java.util.concurrent.TimeUnit;
 @ConfigSerializable
 public class BattleTower extends AbstractYamlConfig implements Placeholder {
 
+    @Comment("If the battle tower is enabled. Setting this to false means the tower will not show up in game")
     private boolean enabled = true;
+    @Comment("The unique ID of the battle tower")
     private String id;
+    @Comment("The positions the player will get teleported to when they reach a new floor")
     private Map<String, FloorPosition> positions;
+    @Comment("The team possibilities that will be selected for the NPCs")
     private Map<String, TeamPossibilities> teamOptions;
+    @Comment("The position the player will be teleported to when they finish the tower")
     private ConfigLocation returnPosition;
+    @Comment("The maximum floor the player can reach. Set to -1 for no limit")
     private int maxFloor;
+    @Comment("If other players are allowed to spectate battles")
     private boolean allowSpectating;
+    @Comment("The cooldown in seconds between battle tower attempts")
     private long cooldownSeconds;
+    @Comment("If the player's team will gain experience from battles")
     private boolean allowExpGain;
+    @Comment("The battle rules for the tower")
     private Map<String, ConfigBattleRule> battleRules;
+    @Comment("The commands that will execute when the player loses a battle")
     private List<String> attemptFinishLossCommands;
+    @Comment("The commands that will execute when the player wins a battle")
     private List<String> attemptFinishWinCommands;
+    @Comment("The Pokemon that are blacklisted from being used in the tower (this accepts specs)")
     private List<PokemonSpecification> blacklistedPokemon;
+    @Comment("The item that will be displayed to the player when they are on cooldown")
     private ExtendedConfigItem cooldownItem;
+    @Comment("The item that will be displayed to the player when they can challenge the tower")
     private ExtendedConfigItem displayItem;
+    @Comment("If the tower is virtual. When set to true all teleporting will be disabled. You will still need to set at least one floor position so the mod can create NPCs to battle against the players.")
     private boolean virtual = true;
 
     private transient Leaderboard<BattleTowerEntry> leaderboard;
