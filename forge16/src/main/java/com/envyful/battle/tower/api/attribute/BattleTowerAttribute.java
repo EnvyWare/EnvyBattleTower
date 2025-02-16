@@ -69,6 +69,10 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
                 TimeUnit.SECONDS.toMillis(tower.getCooldownSeconds()) > System.currentTimeMillis();
     }
 
+    public void clearCooldown(BattleTower battleTower) {
+        this.lastAttemptByTower.remove(battleTower.id().toLowerCase(Locale.ROOT));
+    }
+
     public Placeholder wrap(BattleTower battleTower) {
         var lastAttempt = this.lastAttemptByTower.get(battleTower.id().toLowerCase(Locale.ROOT));
         var bestAttempt = this.bestAttemptByTower.get(battleTower.id().toLowerCase(Locale.ROOT));

@@ -6,12 +6,14 @@ import com.envyful.api.command.annotate.executor.CommandProcessor;
 import com.envyful.api.command.annotate.executor.Completable;
 import com.envyful.api.command.annotate.executor.Sender;
 import com.envyful.api.command.annotate.permission.Permissible;
+import com.envyful.api.forge.command.completion.player.PlayerTabCompleter;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
-import com.envyful.battle.tower.command.tab.ForgePlayerCompleter;
-import com.envyful.battle.tower.player.BattleTowerAttribute;
-import net.minecraft.command.ICommandSource;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.StringTextComponent;
+import com.envyful.api.platform.Messageable;
+import com.envyful.battle.tower.api.BattleTower;
+import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
+import com.envyful.battle.tower.command.completer.BattleTowerTabCompleter;
+
+import java.util.List;
 
 @Command(
         value = "resetcooldown"
@@ -20,16 +22,18 @@ import net.minecraft.util.text.StringTextComponent;
 public class ResetCooldownCommand {
 
     @CommandProcessor
-    public void onCommand(@Sender ICommandSource sender,
-                          @Completable(ForgePlayerCompleter.class) @Argument ForgeEnvyPlayer target) {
+    public void onCommand(@Sender Messageable<?> sender,
+                          @Completable(PlayerTabCompleter.class) @Argument ForgeEnvyPlayer target,
+                          @Completable(BattleTowerTabCompleter.class) @Argument BattleTower tower,
+                          String[] args) {
         var attribute = target.getAttributeNow(BattleTowerAttribute.class);
 
         if (attribute == null) {
-            sender.sendMessage(new StringTextComponent("Failed to reset cooldown for " + target.getName() + " please try again in a minute!"), Util.NIL_UUID);
+            sender.message(List.of("Failed to reset cooldown for " + target.getName() + " please try again in a minute!"));
             return;
         }
 
-        attribute.setLastAttempt(new BattleTowerAttribute.AttemptDetails(0, 0, 0));
-        sender.sendMessage(new StringTextComponent("Cooldown reset for " + target.getName()), Util.NIL_UUID);
+        attribute.clearCooldown(tower);
+        sender.message(List.of("Cooldown reset for " + target.getName()));
     }
 }
