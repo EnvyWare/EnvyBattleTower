@@ -5,10 +5,8 @@ import com.envyful.api.command.annotate.SubCommands;
 import com.envyful.api.command.annotate.executor.CommandProcessor;
 import com.envyful.api.command.annotate.executor.Sender;
 import com.envyful.api.command.annotate.permission.Permissible;
+import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.battle.tower.EnvyBattleTower;
-import com.envyful.battle.tower.gui.BattleTowerUI;
-import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import net.minecraft.entity.player.ServerPlayerEntity;
 
 @Command(
         value = {
@@ -23,11 +21,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 public class BattleTowerCommand {
 
     @CommandProcessor
-    public void onCommand(@Sender ServerPlayerEntity sender) {
-        if (StorageProxy.getParty(sender).guiOpened) {
-            return;
-        }
-
-        BattleTowerUI.open(EnvyBattleTower.getPlayerManager().getPlayer(sender));
+    public void onCommand(@Sender ForgeEnvyPlayer sender) {
+        EnvyBattleTower.getGraphics().getBattleTowerUI().open(sender);
     }
 }
