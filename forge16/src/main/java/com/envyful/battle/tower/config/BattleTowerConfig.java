@@ -16,7 +16,6 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @ConfigSerializable
@@ -26,12 +25,12 @@ public class BattleTowerConfig extends AbstractYamlConfig {
     @Comment("The storage type and details for all battle tower player data. Only change this if you know what you're doing. For more information visit https://www.envyware.co.uk/docs/general-help/general-config/config-databases")
     private DatabaseDetailsConfig databaseDetails = new SQLiteDatabaseDetailsConfig("config/EnvyBattleTower/data.db");
 
-    private transient List<BattleTower> battleTowers = new ArrayList<>();
+    private transient List<BattleTower> battleTowers;
 
     public BattleTowerConfig() throws IOException {
         super();
 
-        var battleTowers = YamlConfigFactory.getInstances(BattleTower.class,
+        this.battleTowers = YamlConfigFactory.getInstances(BattleTower.class,
                 "config/EnvyBattleTower/towers/",
                 DefaultConfig.onlyNew("example.yml", BattleTower.builder()
                         .id("example")
@@ -94,12 +93,11 @@ public class BattleTowerConfig extends AbstractYamlConfig {
                                 .build())
                         .build()));
 
-        for (var battleTower : battleTowers) {
-            if (!battleTower.enabled()) {
-                continue;
-            }
+        this.battleTowers.removeIf(battleTower -> !battleTower.enabled());
+    }
 
-            this.battleTowers.add(battleTower);
+    public void init() {
+        for (var battleTower : this.battleTowers) {
             battleTower.init();
         }
     }

@@ -76,8 +76,9 @@ public class EnvyBattleTower {
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
         this.reloadConfig();
-
         this.database = this.config.getDatabaseDetails().createDatabase();
+        this.config.init();
+
         this.playerManager.overrideSaveMode(BattleTowerAttribute.class, this.config.getDatabaseDetails());
         this.playerManager.getAdapter(BattleTowerAttribute.class).initialize();
     }
