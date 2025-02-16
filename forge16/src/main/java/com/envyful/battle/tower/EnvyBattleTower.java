@@ -1,6 +1,7 @@
 package com.envyful.battle.tower;
 
 import com.envyful.api.concurrency.UtilLogger;
+import com.envyful.api.config.type.SQLDatabaseDetails;
 import com.envyful.api.config.yaml.YamlConfigFactory;
 import com.envyful.api.database.Database;
 import com.envyful.api.forge.chat.ITextComponentTextFormatter;
@@ -12,8 +13,12 @@ import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.forge.player.ForgePlayerManager;
 import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.platform.PlatformProxy;
+import com.envyful.api.player.Attribute;
+import com.envyful.api.sqlite.config.SQLiteDatabaseDetailsConfig;
 import com.envyful.battle.tower.api.BattleTower;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
+import com.envyful.battle.tower.api.attribute.SQLBattleTowerAttributeAdapter;
+import com.envyful.battle.tower.api.attribute.SQLiteBattleTowerAttributeAdapter;
 import com.envyful.battle.tower.command.BattleTowerCommand;
 import com.envyful.battle.tower.command.completer.BattleTowerTabCompleter;
 import com.envyful.battle.tower.config.BattleTowerConfig;
@@ -56,6 +61,14 @@ public class EnvyBattleTower {
 
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(PlayerLogoutListener.class);
+
+        this.playerManager.setGlobalSaveMode("SQL");
+
+        this.playerManager.registerAttribute(Attribute.builder(BattleTowerAttribute.class, ForgeEnvyPlayer.class)
+                .constructor(BattleTowerAttribute::new)
+                .registerAdapter(SQLDatabaseDetails.ID, new SQLBattleTowerAttributeAdapter())
+                .registerAdapter(SQLiteDatabaseDetailsConfig.ID, new SQLiteBattleTowerAttributeAdapter())
+        );
     }
 
     @SubscribeEvent
@@ -68,9 +81,6 @@ public class EnvyBattleTower {
 
     @SubscribeEvent
     public void onCommandRegister(RegisterCommandsEvent event) {
-        this.playerManager.setGlobalSaveMode("SQL");
-        this.playerManager.registerAttribute(BattleTowerAttribute.class, BattleTowerAttribute::new);
-
         this.commandFactory.registerCompleter(new BattleTowerTabCompleter());
 
         this.commandFactory.registerInjector(BattleTower.class, (sender, args) -> {
