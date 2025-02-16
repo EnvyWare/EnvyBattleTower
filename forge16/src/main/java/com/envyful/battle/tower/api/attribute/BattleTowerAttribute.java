@@ -154,9 +154,10 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
                 pokemonStorage.add(pokemon);
             }
 
-            this.parent.getParent().level.addFreshEntity(trainer);
-
-            this.parent.teleport(position.getPlayerPosition());
+            if (!currentTower.isVirtual()) {
+                this.parent.getParent().level.addFreshEntity(trainer);
+                this.parent.teleport(position.getPlayerPosition());
+            }
 
             for (var pokemon : StorageProxy.getParty(this.parent.getParent()).getAll()) {
                 if (pokemon != null) {
@@ -282,7 +283,9 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
             this.bestAttemptByTower.put(this.currentTower.id().toLowerCase(Locale.ROOT), attempt);
         }
 
-        this.parent.teleport(this.currentTower.getReturnPosition());
+        if (!currentTower.isVirtual()) {
+            this.parent.teleport(this.currentTower.getReturnPosition());
+        }
 
         this.attemptStart = -1;
         this.currentFloor = 0;

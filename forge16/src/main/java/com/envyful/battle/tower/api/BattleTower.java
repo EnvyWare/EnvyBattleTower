@@ -46,6 +46,7 @@ public class BattleTower extends AbstractYamlConfig implements SimplePlaceholder
     private List<PokemonSpecification> blacklistedPokemon;
     private ExtendedConfigItem cooldownItem;
     private ExtendedConfigItem displayItem;
+    private boolean virtual = true;
 
     private transient Leaderboard<BattleTowerEntry> leaderboard;
 
@@ -60,6 +61,10 @@ public class BattleTower extends AbstractYamlConfig implements SimplePlaceholder
 
     public boolean enabled() {
         return this.enabled;
+    }
+
+    public boolean isVirtual() {
+        return this.virtual;
     }
 
     public String id() {
