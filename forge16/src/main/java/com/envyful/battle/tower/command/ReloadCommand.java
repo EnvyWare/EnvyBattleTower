@@ -18,6 +18,7 @@ public class ReloadCommand {
     @CommandProcessor
     public void onCommand(@Sender Messageable<?> sender) {
         EnvyBattleTower.getInstance().reloadConfig();
+        EnvyBattleTower.getConfig().init();
         sender.message(List.of("&a&l(!) &aReloaded"));
     }
 }
