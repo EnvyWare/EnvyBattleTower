@@ -1,54 +1,38 @@
 package com.envyful.battle.tower.gui;
 
-import com.envyful.api.forge.config.UtilConfigItem;
+import com.envyful.api.config.type.ConfigInterface;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
-import com.envyful.api.gui.factory.GuiFactory;
-import com.envyful.api.text.parse.SimplePlaceholder;
-import com.envyful.api.time.UtilTimeFormat;
 import com.envyful.battle.tower.EnvyBattleTower;
-import com.envyful.battle.tower.player.BattleTowerAttribute;
+import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.concurrent.TimeUnit;
-
+@ConfigSerializable
 public class BattleTowerUI {
 
-    public static void open(ForgeEnvyPlayer player) {
-        var config = EnvyBattleTower.getGraphics().getMainUI();
+    private ConfigInterface guiSettings = ConfigInterface.defaultInterface("EnvyBattleTower", 3);
+
+    public void open(ForgeEnvyPlayer player) {
         var attribute = player.getAttributeNow(BattleTowerAttribute.class);
-        var lastAttempt = attribute.getLastAttempt();
-        var pane = config.getGuiSettings().toPane();
+        var pane = this.guiSettings.toPane(player);
 
-        UtilConfigItem.builder()
-                .clickHandler((envyPlayer, clickType) -> LeaderboardUI.open(player, 1))
-                .extendedConfigItem(player, pane, config.getLeaderboardButton());
+        for (var battleTower : EnvyBattleTower.getConfig().getBattleTowers()) {
+            var placeholder = attribute.wrap(battleTower);
 
-        if (onCooldown(lastAttempt)) {
-            UtilConfigItem.builder()
-                    .extendedConfigItem(player, pane, config.getCooldownButton(),
-                    (SimplePlaceholder) value -> value.replace("%remaining%",
-                            UtilTimeFormat.getFormattedDuration(
-                                    TimeUnit.SECONDS.toMillis(EnvyBattleTower.getConfig().getCooldownSeconds()) - (System.currentTimeMillis() - lastAttempt.getAttemptStart())
-                            )));
-        } else {
-            UtilConfigItem.builder()
+            if (attribute.onCooldown(battleTower)) {
+                battleTower.getCooldownItem().convert(player, pane, placeholder, battleTower);
+                continue;
+            }
+
+            battleTower.getCooldownItem().convertToBuilder(player, pane, placeholder, battleTower)
+                    .syncClick()
                     .singleClick()
-                    .asyncClick(false)
                     .clickHandler((envyPlayer, clickType) -> {
                         player.closeInventory();
-                        attribute.startAttempt();
+                        attribute.startAttempt(battleTower);
                     })
-                    .extendedConfigItem(player, pane, config.getStartAttemptButton());
+                    .build();
         }
 
-        GuiFactory.singlePaneGui(config.getGuiSettings(), pane).open(player);
+        pane.open(player, guiSettings);
     }
-
-    private static boolean onCooldown(BattleTowerAttribute.AttemptDetails lastAttempt) {
-        if (lastAttempt == null) {
-            return false;
-        }
-
-        return (System.currentTimeMillis() - lastAttempt.getAttemptStart()) <= TimeUnit.SECONDS.toMillis(EnvyBattleTower.getConfig().getCooldownSeconds());
-    }
-
 }
