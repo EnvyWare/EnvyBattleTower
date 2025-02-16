@@ -78,6 +78,7 @@ public class EnvyBattleTower {
         this.reloadConfig();
 
         this.database = this.config.getDatabaseDetails().createDatabase();
+        this.playerManager.overrideSaveMode(BattleTowerAttribute.class, this.config.getDatabaseDetails());
         this.playerManager.getAdapter(BattleTowerAttribute.class).initialize();
     }
 
