@@ -23,7 +23,7 @@ public class BattleTowerUI {
                 continue;
             }
 
-            battleTower.getCooldownItem().convertToBuilder(player, pane, placeholder, battleTower)
+            battleTower.getDisplayItem().convertToBuilder(player, pane, placeholder, battleTower)
                     .syncClick()
                     .singleClick()
                     .clickHandler((envyPlayer, clickType) -> {

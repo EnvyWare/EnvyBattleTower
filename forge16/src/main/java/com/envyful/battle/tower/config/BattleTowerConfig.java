@@ -55,6 +55,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
                         .displayItem(ExtendedConfigItem.builder()
                                 .type("pixelmon:ui_element")
                                 .amount(1)
+                                .positions(3, 1)
                                 .name("&aExample Battle Tower")
                                 .lore(
                                         "&7This is an example battle tower",
@@ -77,6 +78,7 @@ public class BattleTowerConfig extends AbstractYamlConfig {
                         .cooldownItem(ExtendedConfigItem.builder()
                                 .type("pixelmon:ui_element")
                                 .amount(1)
+                                .positions(3, 1)
                                 .name("&aExample Battle Tower")
                                 .lore(
                                         "&c&lYou are on cooldown",

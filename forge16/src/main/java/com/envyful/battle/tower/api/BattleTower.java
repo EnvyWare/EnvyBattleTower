@@ -7,7 +7,8 @@ import com.envyful.api.config.yaml.AbstractYamlConfig;
 import com.envyful.api.forge.player.ForgeEnvyPlayer;
 import com.envyful.api.leaderboard.Leaderboard;
 import com.envyful.api.reforged.battle.ConfigBattleRule;
-import com.envyful.api.text.parse.SimplePlaceholder;
+import com.envyful.api.text.ParseResult;
+import com.envyful.api.text.Placeholder;
 import com.envyful.api.type.Pair;
 import com.envyful.battle.tower.EnvyBattleTower;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
@@ -18,6 +19,7 @@ import com.pixelmonmod.api.pokemon.PokemonSpecificationProxy;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonBuilder;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @ConfigSerializable
-public class BattleTower extends AbstractYamlConfig implements SimplePlaceholder {
+public class BattleTower extends AbstractYamlConfig implements Placeholder {
 
     private boolean enabled = true;
     private String id;
@@ -191,21 +193,31 @@ public class BattleTower extends AbstractYamlConfig implements SimplePlaceholder
     }
 
     @Override
-    public String replace(String s) {
+    public @NonNull ParseResult replace(@NonNull ParseResult parseResult) {
+        if (parseResult.isEmpty()) {
+            return parseResult;
+        }
+
         var firstPage = this.leaderboard.getPage(0);
 
         for (int i = 0; i < firstPage.size(); i++) {
-            s = this.replace(s, firstPage.get(i), i);
+            parseResult = firstPage.get(i).getPlaceholder(i).replace(parseResult);
         }
 
-        return s;
+        for (int i = firstPage.size(); i < 10; i++) {
+            parseResult = emptyPlaceholder(i).replace(parseResult);
+        }
+
+        return parseResult;
     }
 
-    private String replace(String s, BattleTowerEntry entry, int pos) {
-        return s.replace("%leaderboard_" + (pos + 1) + "_player%", entry.getName())
-                .replace("%leaderboard_" + (pos + 1) + "_floor%", entry.getFloors() + "")
-                .replace("%leaderboard_" + (pos + 1) + "_time%", EnvyBattleTower.getLocale().getTimeFormat().format(entry.getTime()))
-                .replace("%leaderboard_" + (pos + 1) + "_date%", EnvyBattleTower.getLocale().getDateFormat().format(entry.getStart()));
+    private Placeholder emptyPlaceholder(int pos) {
+        return Placeholder.composition(
+                Placeholder.empty("%leaderboard_" + (pos + 1) + "_player%"),
+                Placeholder.empty("%leaderboard_" + (pos + 1) + "_floor%"),
+                Placeholder.empty("%leaderboard_" + (pos + 1) + "_time%"),
+                Placeholder.empty("%leaderboard_" + (pos + 1) + "_date%")
+        );
     }
 
     public static Builder builder() {

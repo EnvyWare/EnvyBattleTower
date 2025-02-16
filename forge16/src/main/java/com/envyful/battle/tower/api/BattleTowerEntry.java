@@ -1,5 +1,8 @@
 package com.envyful.battle.tower.api;
 
+import com.envyful.api.text.Placeholder;
+import com.envyful.battle.tower.EnvyBattleTower;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -38,6 +41,13 @@ public class BattleTowerEntry {
 
     public int getFloors() {
         return this.floors;
+    }
+
+    public Placeholder getPlaceholder(int pos) {
+        return Placeholder.simple(s -> s.replace("%leaderboard_" + (pos + 1) + "_player%", this.getName())
+                .replace("%leaderboard_" + (pos + 1) + "_floor%", this.getFloors() + "")
+                .replace("%leaderboard_" + (pos + 1) + "_time%", EnvyBattleTower.getLocale().getTimeFormat().format(this.getTime()))
+                .replace("%leaderboard_" + (pos + 1) + "_date%", EnvyBattleTower.getLocale().getDateFormat().format(this.getStart())));
     }
 
     public static BattleTowerEntry fromQuery(ResultSet resultSet) throws SQLException {
