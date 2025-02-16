@@ -1,4 +1,4 @@
-package com.envyful.battle.tower.player;
+package com.envyful.battle.tower.api;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
