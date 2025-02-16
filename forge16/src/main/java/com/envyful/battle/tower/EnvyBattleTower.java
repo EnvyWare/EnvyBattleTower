@@ -14,6 +14,7 @@ import com.envyful.api.gui.factory.GuiFactory;
 import com.envyful.api.platform.PlatformProxy;
 import com.envyful.battle.tower.api.attribute.BattleTowerAttribute;
 import com.envyful.battle.tower.command.BattleTowerCommand;
+import com.envyful.battle.tower.command.completer.BattleTowerTabCompleter;
 import com.envyful.battle.tower.config.BattleTowerConfig;
 import com.envyful.battle.tower.config.BattleTowerGraphics;
 import com.envyful.battle.tower.config.BattleTowerLocale;
@@ -68,6 +69,8 @@ public class EnvyBattleTower {
     public void onCommandRegister(RegisterCommandsEvent event) {
         this.playerManager.setGlobalSaveMode("SQL");
         this.playerManager.registerAttribute(BattleTowerAttribute.class, BattleTowerAttribute::new);
+
+        this.commandFactory.registerCompleter(new BattleTowerTabCompleter());
 
         this.commandFactory.registerInjector(ForgeEnvyPlayer.class, (sender, args) -> {
             ForgeEnvyPlayer onlinePlayer = this.playerManager.getOnlinePlayer(args[0]);
