@@ -14,6 +14,7 @@ import com.envyful.battle.tower.api.BattleTower;
 import com.envyful.battle.tower.api.FloorPosition;
 import com.google.common.collect.Maps;
 import com.pixelmonmod.pixelmon.api.battles.BattleAIMode;
+import com.pixelmonmod.pixelmon.api.battles.BattleEndCause;
 import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.api.battles.BattleType;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
@@ -192,7 +193,7 @@ public class BattleTowerAttribute extends ManagedForgeAttribute<EnvyBattleTower>
                     .endHandler(battleEndEvent -> {
                         trainer.remove();
 
-                        if (battleEndEvent.isAbnormal()) {
+                        if (battleEndEvent.isAbnormal() || battleEndEvent.getCause() == BattleEndCause.FORCE) {
                             PlatformProxy.executeConsoleCommands(randomLeaderTeam.getX().getPlayerLossCommands(),
                                     Placeholder.simple("%player%", this.parent.getName()),
                                     Placeholder.simple("%floor%", this.currentFloor)
