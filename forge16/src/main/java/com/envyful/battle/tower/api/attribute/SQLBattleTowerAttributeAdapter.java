@@ -28,7 +28,7 @@ public class SQLBattleTowerAttributeAdapter implements BattleTowerAttributeAdapt
 
     public static final String LOAD_LAST_ATTEMPTS = "SELECT start, duration, floor_reached FROM `envy_battle_tower_players` WHERE uuid = ? AND tower = ? ORDER BY start ASC LIMIT 1;";
 
-    public static final String ADD_USER_ATTEMPT = "INSERT INTO `envy_battle_tower_players`(uuid, name, towerm start, duration, floor_reached) VALUES (?, ?, ?, ?, ?, ?);";
+    public static final String ADD_USER_ATTEMPT = "INSERT INTO `envy_battle_tower_players`(uuid, name, tower, start, duration, floor_reached) VALUES (?, ?, ?, ?, ?, ?);";
 
     public static final String GET_TOP_ATTEMPTS = "SELECT uuid, name, start, duration, floor_reached FROM `envy_battle_tower_players` ORDER BY floor_reached DESC LIMIT 10;";
 
